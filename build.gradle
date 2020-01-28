@@ -1,0 +1,28 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.4.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+}
+
+group 'com.tesis'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    testCompile "junit:junit:4.12"
+    testCompile group: 'com.h2database', name: 'h2', version: '1.4.199'
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version:'2.0.0'
+    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version:'2.0.0'
+    testCompile group: 'org.mockito', name: 'mockito-core', version:'2.19.0'
+    testCompile(group: 'io.rest-assured', name: 'rest-assured', version:'3.0.5') {
+        exclude(module: 'httpclient')
+        exclude(module: 'httpmime')
+    }
+}
