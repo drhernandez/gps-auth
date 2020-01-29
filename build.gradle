@@ -11,6 +11,8 @@ group 'com.tesis'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
+mainClassName = "com.tesis.Application"
+
 
 repositories {
     mavenCentral()
