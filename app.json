@@ -1,0 +1,6 @@
+{
+  "name": "auth",
+  "description": "Authentication & Authorization microservice",
+  "image": "heroku/gradle",
+  "addons": [ "heroku-postgresql" ]
+}

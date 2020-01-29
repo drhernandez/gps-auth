@@ -1,1 +1,1 @@
-web: build/install/auth/bin/auth
+web: java -jar build/libs/auth-1.0.jar
