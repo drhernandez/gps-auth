@@ -1,6 +1,10 @@
 package com.tesis.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
@@ -21,13 +25,15 @@ import java.time.LocalDateTime;
 @Setter
 public abstract class AuditModel implements Serializable {
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at", nullable = false)
     @LastModifiedDate
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime updatedAt;
 }
