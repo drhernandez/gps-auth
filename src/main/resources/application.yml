@@ -1,0 +1,23 @@
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  datasource:
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 5
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: ${PORT:8080}
+
+DATABASE_URL: postgres://postgres:postgres@localhost:5432/gps_auth_db
