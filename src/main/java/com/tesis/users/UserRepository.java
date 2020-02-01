@@ -1,7 +1,8 @@
-package com.tesis.repositories;
+package com.tesis.users;
 
-import com.tesis.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    User findByEmail(String email);
 }

@@ -27,11 +27,6 @@ public class RoleServiceImp implements RoleService {
     }
 
     @Override
-    public Role getById(Long id) {
-        return roleRepository.getOne(id);
-    }
-
-    @Override
     public Role getByName(String name) {
         Role role = roleRepository.getByName(name);
         if (role == null) {
@@ -39,6 +34,11 @@ public class RoleServiceImp implements RoleService {
         }
 
         return role;
+    }
+
+    @Override
+    public List<Role> getAllByName(List<String> names) {
+        return roleRepository.getAllByNameIsIn(names);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class RoleServiceImp implements RoleService {
                             .map(Privilege::getName)
                             .collect(Collectors.toList())
             );
-            throw new BadRequestException(String.format("Could not crear new role %s with invalid privileges %s", newRole.getName(), Arrays.toString(newRole.getPrivileges().toArray())));
+            throw new BadRequestException(String.format("Could not create new role %s with invalid privileges %s", newRole.getName(), Arrays.toString(newRole.getPrivileges().toArray())));
         }
 
         return roleRepository.save(

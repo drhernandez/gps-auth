@@ -1,16 +1,18 @@
-package com.tesis.models;
+package com.tesis.users;
 
 import com.tesis.constants.UserStatus;
+import com.tesis.models.AuditModel;
 import com.tesis.roles.Role;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.util.Set;
 
 @Entity
 @Table(name = "USERS")
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Builder
@@ -32,10 +34,18 @@ public class User extends AuditModel {
             inverseJoinColumns = { @JoinColumn(name = "role_id") })
     private Set<Role> roles;
 
+    @NaturalId
     private String email;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String lastName;
+
+    @Column(nullable = false)
     private String dni;
+
     private String address;
     private String phone;
 }
