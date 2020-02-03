@@ -11,8 +11,13 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import javax.annotation.PreDestroy;
+import javax.persistence.Column;
+import javax.persistence.EntityListeners;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.PreRemove;
 import java.io.Serializable;
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
@@ -31,9 +36,19 @@ public abstract class AuditModel implements Serializable {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "last_updated", nullable = false)
     @LastModifiedDate
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at", nullable = false)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime deletedAt;
+
+    @PreDestroy @PreRemove
+    private void onDelete() {
+        deletedAt = LocalDateTime.now(Clock.systemUTC());
+    }
 }
