@@ -2,8 +2,6 @@ package com.tesis.constants;
 
 import com.tesis.exceptions.BadRequestException;
 
-import java.util.Arrays;
-
 public enum UserStatus {
 
     ACTIVE,
