@@ -23,7 +23,18 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequestBody userRequestBody) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserRequestBody userRequestBody) {
         return ResponseEntity.ok(userService.createUser(userRequestBody));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestBody userRequestBody) {
+        return ResponseEntity.ok(userService.updateUser(id, userRequestBody));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
     }
 }

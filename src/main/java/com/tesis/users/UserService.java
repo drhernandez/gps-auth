@@ -14,25 +14,19 @@ public interface UserService {
      * @param userRequestBody
      * @return
      */
-    User createUser(CreateUserRequestBody userRequestBody);
-
-    /**
-     * Set or update password through the recovery password flow
-     * @param plainPassword
-     * @return
-     */
-    User updatePassword(Long userId, String plainPassword);
+    User createUser(UserRequestBody userRequestBody);
 
     /**
      * Update User
-     * @param user
+     * @param userId
+     * @param userRequestBody
      * @return
      */
-    User updateUser(User user);
+    User updateUser(Long userId, UserRequestBody userRequestBody);
 
     /**
      * Delete existing user
-     * @param user
+     * @param id
      */
-    void deleteUser(User user);
+    void deleteUser(Long id);
 }

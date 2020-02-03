@@ -34,7 +34,7 @@ public class User extends AuditModel {
             inverseJoinColumns = { @JoinColumn(name = "role_id") })
     private Set<Role> roles;
 
-    @NaturalId
+    @Column(unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -48,4 +48,17 @@ public class User extends AuditModel {
 
     private String address;
     private String phone;
+
+    public User merge(UserRequestBody userRequestBody) {
+        this.status = userRequestBody.getStatus() != null ? UserStatus.fromName(userRequestBody.getStatus()) : this.status;
+        this.password = userRequestBody.getPassword() != null ? userRequestBody.getPassword() : this.password;
+        this.email = userRequestBody.getEmail() != null ? userRequestBody.getEmail() : this.email;
+        this.name = userRequestBody.getName() != null ? userRequestBody.getName() : this.name;
+        this.lastName = userRequestBody.getLastName() != null ? userRequestBody.getLastName() : this.lastName;
+        this.dni = userRequestBody.getDni() != null ? userRequestBody.getDni() : this.dni;
+        this.address = userRequestBody.getAddress() != null ? userRequestBody.getAddress() : this.address;
+        this.phone = userRequestBody.getPhone() != null ? userRequestBody.getPhone() : this.phone;
+
+        return this;
+    }
 }
