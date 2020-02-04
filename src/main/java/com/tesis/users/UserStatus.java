@@ -1,4 +1,4 @@
-package com.tesis.constants;
+package com.tesis.users;
 
 import com.tesis.exceptions.BadRequestException;
 

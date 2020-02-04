@@ -2,7 +2,6 @@ package com.tesis.users;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import com.tesis.constants.UserStatus;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.roles.Role;

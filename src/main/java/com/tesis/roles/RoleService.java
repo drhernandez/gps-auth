@@ -34,7 +34,7 @@ public interface RoleService {
     Role createRole(RolePostRequest newRole);
 
     /**
-     * Update role privileges
+     * Update role com.tesis.privileges
      * @param roleName
      * @param privilegeNames
      * @return

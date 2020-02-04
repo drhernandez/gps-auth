@@ -1,10 +1,8 @@
 package com.tesis.users;
 
-import com.tesis.constants.UserStatus;
 import com.tesis.models.AuditModel;
 import com.tesis.roles.Role;
 import lombok.*;
-import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.util.Set;

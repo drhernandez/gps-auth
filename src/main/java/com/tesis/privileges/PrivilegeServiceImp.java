@@ -1,16 +1,23 @@
 package com.tesis.privileges;
 
+import com.tesis.exceptions.BadRequestException;
+import com.tesis.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class PrivilegeServiceImp implements PrivilegeService {
 
     private final PrivilegeRepository repository;
+
+    @Autowired
+    public PrivilegeServiceImp(PrivilegeRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public Privilege getById(Long id) {
@@ -19,7 +26,12 @@ public class PrivilegeServiceImp implements PrivilegeService {
 
     @Override
     public Privilege getByName(String name) {
-        return repository.getByName(name);
+        Privilege privilege = repository.getByName(name);
+        if (privilege == null) {
+            throw new NotFoundException(String.format("Privilege %s not found", name));
+        }
+
+        return privilege;
     }
 
     @Override
@@ -29,7 +41,6 @@ public class PrivilegeServiceImp implements PrivilegeService {
 
     @Override
     public List<Privilege> getAllByNames(List<String> names) {
-
         return repository.getAllByNameIsIn(names);
     }
 

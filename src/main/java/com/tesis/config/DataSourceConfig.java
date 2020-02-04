@@ -1,5 +1,6 @@
 package com.tesis.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,7 @@ import java.net.URISyntaxException;
 @EnableJpaAuditing
 @EnableJpaRepositories("com.tesis")
 @EnableTransactionManagement
+@Slf4j
 public class DataSourceConfig {
 
     @Value("${DATABASE_URL:}")
@@ -26,6 +28,7 @@ public class DataSourceConfig {
     @Bean
     public DataSource dataSource() throws URISyntaxException {
 
+        logger.info("SARASA");
         URI dbUri = new URI(databaseUrl);
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
@@ -36,6 +39,8 @@ public class DataSourceConfig {
         dataSourceBuilder.username(username);
         dataSourceBuilder.password(password);
 
+        logger.error("CREATING PROD BEAN");
+
         return dataSourceBuilder.build();
     }
 
@@ -43,11 +48,14 @@ public class DataSourceConfig {
     @Profile("test")
     public DataSource testDataSource() {
 
+        logger.info("SARASA2");
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUrl("jdbc:h2:mem:gps_auth_db;DB_CLOSE_DELAY=-1");
         dataSource.setUsername("");
         dataSource.setPassword("");
+
+        logger.error("CREATING TEST BEAN");
 
         return dataSource;
     }
