@@ -7,13 +7,6 @@ import java.util.List;
 public interface RoleService {
 
     /**
-     * Get Role by id
-     * @param id
-     * @return
-     */
-    Role getById(Long id);
-
-    /**
      * Get Role by name
      * @param name
      * @return
@@ -25,6 +18,13 @@ public interface RoleService {
      * @return
      */
     List<Role> getAll();
+
+    /**
+     * Get multiple roles by a list of role names
+     * @param names
+     * @return
+     */
+    List<Role> getAllByName(List<String> names);
 
     /**
      * Create new Role
