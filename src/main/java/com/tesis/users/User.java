@@ -4,10 +4,8 @@ import com.tesis.constants.UserStatus;
 import com.tesis.models.AuditModel;
 import com.tesis.roles.Role;
 import lombok.*;
-import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Entity
 @Table(name = "USERS")
@@ -28,11 +26,9 @@ public class User extends AuditModel {
     @Column(length = 1000)
     private String password;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "USERS_ROLES",
-            joinColumns = { @JoinColumn(name = "user_id") },
-            inverseJoinColumns = { @JoinColumn(name = "role_id") })
-    private Set<Role> roles;
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     @Column(unique = true)
     private String email;
