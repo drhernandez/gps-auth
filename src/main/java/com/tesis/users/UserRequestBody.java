@@ -2,8 +2,6 @@ package com.tesis.users;
 
 import lombok.*;
 
-import java.util.List;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

@@ -101,8 +101,9 @@ public class UserServiceImp implements UserService {
         }
 
         user.merge(userRequestBody);
+        userRepository.save(user);
 
-        return userRepository.save(user);
+        return user;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.tesis.privileges;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,14 +31,14 @@ public class PrivilegeController {
                 privilegeService
                         .getAll()
                         .stream()
-                        .map(privilege -> privilege.toString())
+                        .map(Privilege::toString)
                         .collect(Collectors.toList())
         );
     }
 
     @PostMapping
-    public ResponseEntity create(@RequestBody Privilege privilege) {
-        return ResponseEntity.ok(privilegeService.save(privilege));
+    public ResponseEntity<Privilege> create(@RequestBody Privilege privilege) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(privilegeService.save(privilege));
     }
 
     @DeleteMapping("/{name}")
