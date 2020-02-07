@@ -1,6 +1,7 @@
 package com.tesis.privileges;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tesis.roles.Role;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
@@ -25,7 +26,7 @@ public class Privilege {
     private String name;
 
     @JsonBackReference
-    @ManyToMany(cascade = CascadeType.ALL, fetch=FetchType.LAZY, mappedBy = "privileges")
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "privileges")
     Set<Role> roles;
 
     @Override
