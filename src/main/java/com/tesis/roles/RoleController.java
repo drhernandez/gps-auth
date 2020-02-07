@@ -33,7 +33,7 @@ public class RoleController {
         return ResponseEntity.ok(roleService.createRole(rolePostRequest));
     }
 
-    @PutMapping("/{name}/com.tesis.privileges")
+    @PutMapping("/{name}/privileges")
     public ResponseEntity<Role> changePrivileges(@Valid @PathVariable String name, @Valid @RequestBody List<String> privileges) {
         return ResponseEntity.ok(roleService.updatePrivileges(name, privileges));
     }

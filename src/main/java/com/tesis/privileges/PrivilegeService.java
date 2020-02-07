@@ -19,13 +19,13 @@ public interface PrivilegeService {
     Privilege getByName(String name);
 
     /**
-     * Get all existing com.tesis.privileges
+     * Get all existing privileges
      * @return
      */
     List<Privilege> getAll();
 
     /**
-     * Find multi com.tesis.privileges by name
+     * Find multi privileges by name
      * @param names
      * @return
      */

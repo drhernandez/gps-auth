@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/com.tesis.privileges")
+@RequestMapping("/privileges")
 public class PrivilegeController {
 
     private final PrivilegeService privilegeService;
