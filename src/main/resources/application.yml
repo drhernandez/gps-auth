@@ -3,6 +3,9 @@ spring:
     throw-exception-if-no-handler-found: true
 
   datasource:
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/gps_auth_db}
+    username: ${JDBC_DATABASE_USERNAME:postgres}
+    password: ${JDBC_DATABASE_PASSWORD:postgres}
     hikari:
       connection-timeout: 30000
       idle-timeout: 600000
@@ -19,5 +22,3 @@ spring:
 
 server:
   port: ${PORT:8080}
-
-DATABASE_URL: postgres://postgres:postgres@localhost:5432/gps_auth_db
