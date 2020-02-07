@@ -1,4 +1,4 @@
-package com.tesis.controllers;
+package com.tesis.config;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
