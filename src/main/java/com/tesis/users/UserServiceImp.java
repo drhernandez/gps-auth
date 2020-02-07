@@ -1,7 +1,7 @@
 package com.tesis.users;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import com.tesis.constants.UserStatus;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.roles.Role;
@@ -12,10 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImp implements UserService {
@@ -48,16 +45,11 @@ public class UserServiceImp implements UserService {
             throw new BadRequestException(String.format("Email %s is already in use", userRequestBody.getEmail()));
         }
 
-        List<Role> roles = roleService.getAllByName(userRequestBody.getRoles());
-        if (roles.size() != userRequestBody.getRoles().size()) {
-
-            userRequestBody.getRoles().removeAll(
-                    roles
-                            .stream()
-                            .map(Role::getName)
-                            .collect(Collectors.toList())
-            );
-            throw new BadRequestException(String.format("Could not create user with invalid roles %s", Arrays.toString(userRequestBody.getRoles().toArray())));
+        Role role;
+        try {
+            role = roleService.getByName(userRequestBody.getRole());
+        } catch (NotFoundException e) {
+            throw new BadRequestException(String.format("Could not create user with invalid role %s", userRequestBody.getRole()));
         }
 
         User user = User.builder()
@@ -67,7 +59,7 @@ public class UserServiceImp implements UserService {
                 .email(userRequestBody.getEmail())
                 .address(userRequestBody.getAddress())
                 .phone(userRequestBody.getPhone())
-                .roles(Sets.newHashSet(roles))
+                .role(role)
                 .status(UserStatus.INACTIVE)
                 .build();
 
@@ -95,19 +87,13 @@ public class UserServiceImp implements UserService {
             throw new BadRequestException(String.format("Email %s is already in use", userRequestBody.getEmail()));
         }
 
-        if (userRequestBody.getRoles() != null) {
-            List<Role> roles = roleService.getAllByName(userRequestBody.getRoles());
-            if (roles.size() != userRequestBody.getRoles().size()) {
-
-                userRequestBody.getRoles().removeAll(
-                        roles
-                                .stream()
-                                .map(Role::getName)
-                                .collect(Collectors.toList())
-                );
-                throw new BadRequestException(String.format("Could not update user %s with invalid roles %s", userId, Arrays.toString(userRequestBody.getRoles().toArray())));
+        if (!Strings.isNullOrEmpty(userRequestBody.getRole())) {
+            try {
+                Role role = roleService.getByName(userRequestBody.getRole());
+                user.setRole(role);
+            } catch (NotFoundException e) {
+                throw new BadRequestException(String.format("Could not create user with invalid role %s", userRequestBody.getRole()));
             }
-            user.setRoles(Sets.newHashSet(roles));
         }
 
         if (!Strings.isNullOrEmpty(userRequestBody.getPassword())) {

@@ -38,11 +38,11 @@ public class Role {
 
         Role role = (Role) o;
 
-        return id.equals(role.id);
+        return name.equals(role.name);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return name.hashCode();
     }
 }

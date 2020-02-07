@@ -62,7 +62,7 @@ public class RoleServiceImp implements RoleService {
                             .map(Privilege::getName)
                             .collect(Collectors.toList())
             );
-            throw new BadRequestException(String.format("Could not create new role %s with invalid com.tesis.privileges %s", newRole.getName(), Arrays.toString(newRole.getPrivileges().toArray())));
+            throw new BadRequestException(String.format("Could not create new role %s with invalid privileges %s", newRole.getName(), Arrays.toString(newRole.getPrivileges().toArray())));
         }
 
         return roleRepository.save(
@@ -86,7 +86,7 @@ public class RoleServiceImp implements RoleService {
                             .map(Privilege::getName)
                             .collect(Collectors.toList())
             );
-            throw new BadRequestException(String.format("Could not update role %s with invalid com.tesis.privileges %s", roleName, Arrays.toString(privilegeNames.toArray())));
+            throw new BadRequestException(String.format("Could not update role %s with invalid privileges %s", roleName, Arrays.toString(privilegeNames.toArray())));
         }
 
         role.setPrivileges(Sets.newHashSet(privileges));
