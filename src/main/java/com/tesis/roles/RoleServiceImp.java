@@ -53,6 +53,10 @@ public class RoleServiceImp implements RoleService {
             throw new BadRequestException(String.format("Role %s already exist", newRole.getName()));
         }
 
+        if (newRole.getPrivileges() == null || newRole.getPrivileges().isEmpty()) {
+            throw new BadRequestException(String.format("Could not create new role %s with no privileges", newRole.getName()));
+        }
+
         List<Privilege> privileges = privilegeService.getAllByNames(newRole.getPrivileges());
         if (privileges.size() != newRole.getPrivileges().size()) {
 
@@ -77,6 +81,11 @@ public class RoleServiceImp implements RoleService {
     public Role updatePrivileges(String roleName, List<String> privilegeNames) {
 
         Role role = getByName(roleName);
+
+        if (privilegeNames == null || privilegeNames.isEmpty()) {
+            throw new BadRequestException(String.format("Could not update role %s with no privileges", roleName));
+        }
+
         List<Privilege> privileges = privilegeService.getAllByNames(privilegeNames);
         if (privileges.size() != privilegeNames.size()) {
 
