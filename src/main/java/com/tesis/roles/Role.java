@@ -24,7 +24,6 @@ public class Role {
     @NaturalId
     private String name;
 
-    @JsonManagedReference
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH}, fetch=FetchType.LAZY)
     @JoinTable(name = "ROLES_PRIVILEGES",
             joinColumns = { @JoinColumn(name = "role_id") },

@@ -25,8 +25,8 @@ public class Privilege {
     @NaturalId
     private String name;
 
-    @JsonBackReference
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "privileges")
+    @JsonIgnore
     Set<Role> roles;
 
     @Override

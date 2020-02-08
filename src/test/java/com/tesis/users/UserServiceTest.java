@@ -203,7 +203,7 @@ public class UserServiceTest {
         when(roleService.getByName("INVALID_ROLE")).thenThrow(NotFoundException.class);
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.updateUser(1L, requestBody));
-        assertEquals("Could not create user with invalid role INVALID_ROLE", e.getReason());
+        assertEquals("Could not update user with invalid role INVALID_ROLE", e.getReason());
     }
 
     @DisplayName("User service - updateUser() ok")
