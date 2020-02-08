@@ -2,6 +2,7 @@ package com.tesis.roles;
 
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -12,5 +13,6 @@ import java.util.List;
 public class RolePostRequest {
 
     private String name;
-    private List<String> privileges;
+    @Builder.Default
+    private List<String> privileges = new ArrayList<>();
 }

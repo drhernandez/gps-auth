@@ -102,9 +102,20 @@ public class RoleServiceTest {
         assertEquals("Role CLIENT already exist", e.getReason());
     }
 
-    @DisplayName("Role service - createRole() invalid privileges")
+    @DisplayName("Role service - createRole() no privileges")
     @Test
     public void createRole2() {
+
+        when(roleRepository.getByName("CLIENT")).thenReturn(null);
+
+        RolePostRequest request = RolePostRequest.builder().name("CLIENT").build();
+        BadRequestException e = assertThrows(BadRequestException.class, () -> roleService.createRole(request));
+        assertEquals("Could not create new role CLIENT with no privileges", e.getReason());
+    }
+
+    @DisplayName("Role service - createRole() invalid privileges")
+    @Test
+    public void createRole3() {
 
         List<Privilege> privilegesMock = Lists.newArrayList(
                 Privilege.builder().id(1L).name("GET_CLIENT").build()
@@ -120,7 +131,7 @@ public class RoleServiceTest {
 
     @DisplayName("Role service - createRole() ok")
     @Test
-    public void createRole3() {
+    public void createRole4() {
 
         List<Privilege> privilegesMock = Lists.newArrayList(
                 Privilege.builder().id(1L).name("GET_CLIENT").build()
@@ -145,7 +156,7 @@ public class RoleServiceTest {
         assertEquals(1, role.getPrivileges().size());
     }
 
-    @DisplayName("Role service - createRole() role does not exist")
+    @DisplayName("Role service - updatePrivileges() role does not exist")
     @Test
     public void updatePrivileges1() {
 
@@ -155,9 +166,28 @@ public class RoleServiceTest {
         assertEquals("Role CLIENT not found", e.getReason());
     }
 
-    @DisplayName("Role service - createRole() invalid privileges")
+    @DisplayName("Role service - updatePrivileges() no privileges")
     @Test
     public void updatePrivileges2() {
+
+        Role mock1 = Role.builder()
+                .id(1L)
+                .name("CLIENT")
+                .privileges(
+                        Sets.newHashSet(
+                                Privilege.builder().id(1L).name("GET_CLIENT").build()
+                        )
+                ).build();
+
+        when(roleRepository.getByName("CLIENT")).thenReturn(mock1);
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> roleService.updatePrivileges("CLIENT", Lists.newArrayList()));
+        assertEquals("Could not update role CLIENT with no privileges", e.getReason());
+    }
+
+    @DisplayName("Role service - updatePrivileges() invalid privileges")
+    @Test
+    public void updatePrivileges3() {
 
         List<Privilege> privilegesMock = Lists.newArrayList(
                 Privilege.builder().id(1L).name("GET_CLIENT").build()
@@ -178,9 +208,9 @@ public class RoleServiceTest {
         assertEquals("Could not update role CLIENT with invalid privileges [TEST]", e.getReason());
     }
 
-    @DisplayName("Role service - createRole() ok")
+    @DisplayName("Role service - updatePrivileges() ok")
     @Test
-    public void updatePrivileges3() {
+    public void updatePrivileges4() {
 
         List<Privilege> privilegesMock = Lists.newArrayList(
                 Privilege.builder().id(1L).name("GET_CLIENT").build(),

@@ -92,7 +92,7 @@ public class UserServiceImp implements UserService {
                 Role role = roleService.getByName(userRequestBody.getRole());
                 user.setRole(role);
             } catch (NotFoundException e) {
-                throw new BadRequestException(String.format("Could not create user with invalid role %s", userRequestBody.getRole()));
+                throw new BadRequestException(String.format("Could not update user with invalid role %s", userRequestBody.getRole()));
             }
         }
 
