@@ -10,6 +10,13 @@ public interface UserService {
     User getUser(Long id);
 
     /**
+     * Get user by email
+     * @param email
+     * @return
+     */
+    User getUser(String email);
+
+    /**
      * Create new user
      * @param userRequestBody
      * @return

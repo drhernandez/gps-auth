@@ -1,11 +1,15 @@
 package com.tesis.users;
 
-import com.tesis.constants.UserStatus;
 import com.tesis.models.AuditModel;
 import com.tesis.roles.Role;
 import lombok.*;
 
 import javax.persistence.*;
+
+import java.time.Clock;
+import java.time.LocalDateTime;
+
+import static com.tesis.users.UserStatus.DELETED;
 
 @Entity
 @Table(name = "USERS")
@@ -56,5 +60,13 @@ public class User extends AuditModel {
         this.phone = userRequestBody.getPhone() != null ? userRequestBody.getPhone() : this.phone;
 
         return this;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
+
+        if (DELETED.equals(status)) {
+            this.setDeletedAt(LocalDateTime.now(Clock.systemUTC()));
+        }
     }
 }

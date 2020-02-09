@@ -1,4 +1,4 @@
-package com.tesis.models;
+package com.tesis.authentication;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +21,7 @@ public class AccessToken implements Serializable {
     @Id
     Long userId;
 
-    @Column(name = "token", nullable = false, updatable = false, length = 1000)
+    @Column(name = "token", nullable = false, updatable = false, unique = true, length = 1000)
     @NotBlank
     String token;
 }

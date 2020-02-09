@@ -1,7 +1,6 @@
 package com.tesis.users;
 
 import com.google.common.base.Strings;
-import com.tesis.constants.UserStatus;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.roles.Role;
@@ -12,6 +11,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -36,6 +37,16 @@ public class UserServiceImp implements UserService {
         }
 
         return user.get();
+    }
+
+    @Override
+    public User getUser(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new NotFoundException(String.format("User with email %s not found", email));
+        }
+
+        return user;
     }
 
     @Override
@@ -110,6 +121,7 @@ public class UserServiceImp implements UserService {
     public void deleteUser(Long id) {
 
         User user = getUser(id);
-        userRepository.delete(user);
+        user.setStatus(UserStatus.DELETED);
+        userRepository.save(user);
     }
 }

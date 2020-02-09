@@ -38,9 +38,4 @@ public abstract class AuditModel implements Serializable {
     @Column(name = "deleted_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime deletedAt;
-
-    @PreDestroy @PreRemove
-    private void onDelete() {
-        deletedAt = LocalDateTime.now(Clock.systemUTC());
-    }
 }
