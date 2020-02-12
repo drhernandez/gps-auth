@@ -1,8 +1,7 @@
-package com.tesis.models;
+package com.tesis.authentication;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,15 +12,18 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "ACCESS_TOKENS")
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Builder
 public class AccessToken implements Serializable {
 
+    @JsonIgnore
     @Id
     Long userId;
 
-    @Column(name = "token", nullable = false, updatable = false, length = 1000)
+    @Column(name = "token", nullable = false, updatable = false, unique = true, length = 3000)
     @NotBlank
     String token;
 }

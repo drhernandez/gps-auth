@@ -22,3 +22,6 @@ spring:
 
 server:
   port: ${PORT:8080}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:ccXO1GSYaGNUaQthSgEWqym6BVdLzKITPmxeYff/KbAUXc0k8y6yirNbBBiYT7IS32r567Pzg0rcmjniF5zd6w==}

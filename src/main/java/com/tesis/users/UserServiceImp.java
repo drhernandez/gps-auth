@@ -1,7 +1,6 @@
 package com.tesis.users;
 
 import com.google.common.base.Strings;
-import com.tesis.constants.UserStatus;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.roles.Role;
@@ -36,6 +35,11 @@ public class UserServiceImp implements UserService {
         }
 
         return user.get();
+    }
+
+    @Override
+    public Optional<User> getUser(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
     }
 
     @Override
@@ -110,6 +114,7 @@ public class UserServiceImp implements UserService {
     public void deleteUser(Long id) {
 
         User user = getUser(id);
-        userRepository.delete(user);
+        user.setStatus(UserStatus.DELETED);
+        userRepository.save(user);
     }
 }

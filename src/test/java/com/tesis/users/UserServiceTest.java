@@ -34,7 +34,7 @@ public class UserServiceTest {
     @InjectMocks
     private UserServiceImp userService;
 
-    @DisplayName("User service - getUser() entity not found")
+    @DisplayName("User service - getUser(Long id) entity not found")
     @Test
     public void getUser1() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
@@ -42,7 +42,7 @@ public class UserServiceTest {
         assertEquals("User 1 not found", e.getReason());
     }
 
-    @DisplayName("User service - getUser() ok")
+    @DisplayName("User service - getUser(Long id) ok")
     @Test
     public void getUser2() {
 
@@ -58,6 +58,35 @@ public class UserServiceTest {
 
         assertNotNull(user);
         assertEquals("test", user.getName());
+    }
+
+    @DisplayName("User service - getUser(String email) entity not found")
+    @Test
+    public void getUser3() {
+        when(userRepository.findByEmail("test@test.com")).thenReturn(null);
+        Optional<User> user = userService.getUser("test@test.com");
+
+        assertNotNull(user);
+        assertFalse(user.isPresent());
+    }
+
+    @DisplayName("User service - getUser(String email) ok")
+    @Test
+    public void getUser4() {
+
+        User mock = User.builder()
+                .id(1L)
+                .name("test")
+                .lastName("test")
+                .email("test@test.com")
+                .build();
+
+        when(userRepository.findByEmail("test@test.com")).thenReturn(mock);
+
+        Optional<User> user = userService.getUser("test@test.com");
+
+        assertTrue(user.isPresent());
+        assertEquals("test", user.get().getName());
     }
 
     @DisplayName("User service - createUser() user not found")
