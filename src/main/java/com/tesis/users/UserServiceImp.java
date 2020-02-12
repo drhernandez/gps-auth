@@ -11,8 +11,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -40,13 +38,8 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User getUser(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new NotFoundException(String.format("User with email %s not found", email));
-        }
-
-        return user;
+    public Optional<User> getUser(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
     }
 
     @Override

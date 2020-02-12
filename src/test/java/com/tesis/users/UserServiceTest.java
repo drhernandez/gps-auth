@@ -64,8 +64,10 @@ public class UserServiceTest {
     @Test
     public void getUser3() {
         when(userRepository.findByEmail("test@test.com")).thenReturn(null);
-        NotFoundException e = assertThrows(NotFoundException.class, () -> userService.getUser("test@test.com"));
-        assertEquals("User with email test@test.com not found", e.getReason());
+        Optional<User> user = userService.getUser("test@test.com");
+
+        assertNotNull(user);
+        assertFalse(user.isPresent());
     }
 
     @DisplayName("User service - getUser(String email) ok")
@@ -81,10 +83,10 @@ public class UserServiceTest {
 
         when(userRepository.findByEmail("test@test.com")).thenReturn(mock);
 
-        User user = userService.getUser("test@test.com");
+        Optional<User> user = userService.getUser("test@test.com");
 
-        assertNotNull(user);
-        assertEquals("test", user.getName());
+        assertTrue(user.isPresent());
+        assertEquals("test", user.get().getName());
     }
 
     @DisplayName("User service - createUser() user not found")

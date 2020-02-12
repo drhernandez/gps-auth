@@ -1,5 +1,7 @@
 package com.tesis.users;
 
+import java.util.Optional;
+
 public interface UserService {
 
     /**
@@ -14,7 +16,7 @@ public interface UserService {
      * @param email
      * @return
      */
-    User getUser(String email);
+    Optional<User> getUser(String email);
 
     /**
      * Create new user

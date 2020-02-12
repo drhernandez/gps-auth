@@ -1,19 +1,18 @@
 package com.tesis.authentication;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
 
-@Builder
+@NoArgsConstructor
 @AllArgsConstructor
-@Getter@Setter
+@Getter
+@Setter
+@Builder
 public class ClientCredentialsBody {
 
     @NotNull
-    private String userEmail;
+    private String email;
     @NotNull
-    private String rawPassword;
+    private String password;
 }
