@@ -1,13 +1,11 @@
 package com.tesis.authentication;
 
+import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.UnauthorizedException;
 import com.tesis.users.User;
 import com.tesis.users.UserService;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +13,7 @@ import java.security.Key;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -26,7 +25,6 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
     public AuthenticationServiceImp(Key secretKey, AccessTokenRepository accessTokenRepository, UserService userService, PasswordEncoder passwordEncoder) {
         this.secretKey = secretKey;
         this.accessTokenRepository = accessTokenRepository;
@@ -50,6 +48,29 @@ public class AuthenticationServiceImp implements AuthenticationService {
                 .orElseGet(() -> createAccessToken(user));
     }
 
+    @Override
+    public void logout(String token) {
+
+        Long userId;
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
+
+            Map<String, Object> user = (Map<String, Object>) claims.getBody().get("user");
+            userId = Long.parseLong(user.get("id").toString());
+
+        } catch (Exception ex) {
+            logger.error("[message: Invalid token] [error: {}] [stacktrace: {}]", ex.getMessage(), ex.getStackTrace());
+            throw new BadRequestException("Invalid access token");
+        }
+
+        Optional<AccessToken> accessTokenOpt = accessTokenRepository.findById(userId);
+        AccessToken accessToken = accessTokenOpt.orElseThrow(() -> new BadRequestException("Invalid access token"));
+        accessTokenRepository.delete(accessToken);
+    }
+
     private boolean validateAccessTokenToken(AccessToken accessToken) {
 
         try {
@@ -57,7 +78,6 @@ public class AuthenticationServiceImp implements AuthenticationService {
                     .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(accessToken.getToken());
-
             return true;
 
         } catch (JwtException ex) {

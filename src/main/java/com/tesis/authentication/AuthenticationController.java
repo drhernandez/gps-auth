@@ -2,10 +2,7 @@ package com.tesis.authentication;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/authentication")
@@ -21,5 +18,10 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<AccessToken> login(@RequestBody ClientCredentialsBody credentialsBody) {
         return ResponseEntity.ok(authenticationService.login(credentialsBody));
+    }
+
+    public ResponseEntity logout(@RequestHeader("x-access-token") String token) {
+        authenticationService.logout(token);
+        return ResponseEntity.ok().build();
     }
 }
