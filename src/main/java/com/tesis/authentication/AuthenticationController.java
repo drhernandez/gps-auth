@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @RestController
@@ -29,7 +31,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/validate")
-    public ResponseEntity validateTokenAndPrivileges(@RequestHeader("x-access-token") String token, @RequestBody List<String> privileges) {
+    public ResponseEntity validateTokenAndPrivileges(@RequestHeader("x-access-token") String token, @RequestBody @Nullable List<String> privileges) {
         authenticationService.validatePrivilegesOnAccessToken(token, privileges);
         return ResponseEntity.ok().build();
     }
