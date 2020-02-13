@@ -4,6 +4,9 @@ import com.tesis.exceptions.ApiError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,7 +20,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(value = {NoHandlerFoundException.class})
     public ResponseEntity<ApiError> noHandlerFoundException(HttpServletRequest req, NoHandlerFoundException ex) {
-        ApiError apiError = new ApiError(String.format("Route %s not found", req.getRequestURI()), HttpStatus.NOT_FOUND.value());
+        ApiError apiError = new ApiError(HttpStatus.NOT_FOUND.value(), String.format("Route %s not found", req.getRequestURI()));
         return ResponseEntity.status(apiError.getStatus())
                 .body(apiError);
     }
@@ -32,7 +35,16 @@ public class ControllerExceptionHandler {
             logger.error("[message: {}] [status: {}] [stackTrace: {}]", e.getReason(), e.getStatus().value(), e.getStackTrace());
         }
 
-        ApiError apiError = new ApiError(e.getReason(), statusCode);
+        ApiError apiError = new ApiError(statusCode, e.getReason());
+        return ResponseEntity.status(apiError.getStatus())
+                .body(apiError);
+    }
+
+    @ExceptionHandler(value = {ServletRequestBindingException.class})
+    protected ResponseEntity<ApiError> handleServletRequestBindingException(ServletRequestBindingException e) {
+        logger.error("[message: {}] [status: 500] [stackTrace: {}]", e.getMessage(), e.getStackTrace());
+
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         return ResponseEntity.status(apiError.getStatus())
                 .body(apiError);
     }
@@ -41,7 +53,7 @@ public class ControllerExceptionHandler {
     protected ResponseEntity<ApiError> handleUnknownException(Exception e) {
         logger.error("[message: {}] [status: 500] [stackTrace: {}]", e.getMessage(), e.getStackTrace());
 
-        ApiError apiError = new ApiError("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error");
         return ResponseEntity.status(apiError.getStatus())
                 .body(apiError);
     }

@@ -1,11 +1,17 @@
 package com.tesis.authentication;
 
+import com.google.common.collect.Sets;
 import com.tesis.exceptions.BadRequestException;
+import com.tesis.exceptions.ForbiddenException;
+import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.UnauthorizedException;
+import com.tesis.privileges.Privilege;
+import com.tesis.roles.Role;
 import com.tesis.users.User;
 import com.tesis.users.UserService;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.security.Key;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +44,7 @@ public class AuthenticationServiceTest {
 
     @BeforeEach
     public void setUp() {
-        authenticationService = new AuthenticationServiceImp(key, accessTokenRepository, userService, passwordEncoder);
+        authenticationService = new AuthenticationServiceImp(accessTokenRepository, userService, passwordEncoder, key);
     }
 
     @DisplayName("Authentication service - login() user not found")
@@ -138,6 +145,17 @@ public class AuthenticationServiceTest {
                 .name("test")
                 .email("test@test.com")
                 .password("test")
+                .role(
+                        Role.builder()
+                        .id(1L)
+                        .privileges(
+                                Sets.newHashSet(
+                                        Privilege.builder().id(1L).name("GET_CLIENT").build(),
+                                        Privilege.builder().id(2L).name("CREATE_CLIENT").build()
+                                )
+                        )
+                        .build()
+                )
                 .build();
 
         ClientCredentialsBody body = ClientCredentialsBody.builder()
@@ -158,14 +176,7 @@ public class AuthenticationServiceTest {
     @Test
     public void logout1() {
 
-        assertThrows(BadRequestException.class, () -> authenticationService.logout(getExpiredToken()));
-    }
-
-    @DisplayName("Authentication service - logout() token with no user claim")
-    @Test
-    public void logout2() {
-
-        assertThrows(BadRequestException.class, () -> authenticationService.logout(getTokenWithNoUserClaim()));
+        assertThrows(UnauthorizedException.class, () -> authenticationService.logout(getExpiredToken()));
     }
 
     @DisplayName("Authentication service - logout() token not found for user")
@@ -174,7 +185,7 @@ public class AuthenticationServiceTest {
 
         when(accessTokenRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(BadRequestException.class, () -> authenticationService.logout(getTokenWithNoUserClaim()));
+        assertThrows(BadRequestException.class, () -> authenticationService.logout(getValidToken()));
     }
 
     @DisplayName("Authentication service - logout() ok")
@@ -183,12 +194,93 @@ public class AuthenticationServiceTest {
 
         when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().build()));
         doNothing().when(accessTokenRepository).delete(any());
+        assertDoesNotThrow(() -> authenticationService.logout(getValidToken()));
+    }
 
-        try {
-            authenticationService.logout(getValidToken());
-        } catch (Exception e) {
-            fail("should not throw exception");
-        }
+    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() invalid token")
+    @Test
+    public void validatePrivilegesOnAccessToken1() {
+
+        assertThrows(UnauthorizedException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getExpiredToken(), Collections.emptyList()));
+    }
+
+    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() invalid token subject")
+    @Test
+    public void validatePrivilegesOnAccessToken2() {
+
+        assertThrows(InternalServerErrorException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getTokenWithInvalidSubject(), Collections.emptyList()));
+    }
+
+    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() old token")
+    @Test
+    public void validatePrivilegesOnAccessToken3() {
+
+        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token("token").build()));
+        assertThrows(UnauthorizedException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Collections.emptyList()));
+    }
+
+    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() not privilege should only validate token")
+    @Test
+    public void validatePrivilegesOnAccessToken4() {
+
+        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token(getValidToken()).build()));
+        assertDoesNotThrow(() -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Collections.emptyList()));
+    }
+
+    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() invalid privileges")
+    @Test
+    public void validatePrivilegesOnAccessToken5() {
+
+        User mockedUser = User.builder()
+                .id(1L)
+                .name("test")
+                .email("test@test.com")
+                .password("test")
+                .role(
+                        Role.builder()
+                                .id(1L)
+                                .privileges(
+                                        Sets.newHashSet(
+                                                Privilege.builder().id(1L).name("GET_CLIENT").build(),
+                                                Privilege.builder().id(2L).name("CREATE_CLIENT").build()
+                                        )
+                                )
+                                .build()
+                )
+                .build();
+
+        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token(getValidToken()).build()));
+        when(userService.getUser(1L)).thenReturn(Optional.of(mockedUser));
+
+        assertThrows(ForbiddenException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Lists.newArrayList("GET_CLIENT", "UPDATE_CLIENT")));
+    }
+
+    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() ok")
+    @Test
+    public void validatePrivilegesOnAccessToken6() {
+
+        User mockedUser = User.builder()
+                .id(1L)
+                .name("test")
+                .email("test@test.com")
+                .password("test")
+                .role(
+                        Role.builder()
+                                .id(1L)
+                                .privileges(
+                                        Sets.newHashSet(
+                                                Privilege.builder().id(1L).name("GET_CLIENT").build(),
+                                                Privilege.builder().id(2L).name("CREATE_CLIENT").build()
+                                        )
+                                )
+                                .build()
+                )
+                .build();
+
+        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token(getValidToken()).build()));
+        when(userService.getUser(1L)).thenReturn(Optional.of(mockedUser));
+
+        assertDoesNotThrow(() -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Lists.newArrayList("GET_CLIENT")));
     }
 
     String getTokenWithNoUserClaim() {
@@ -196,10 +288,14 @@ public class AuthenticationServiceTest {
     }
 
     String getValidToken() {
-        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNTgxNTMyODkyLCJleHAiOjc4OTI4ODAwOTIsInVzZXIiOnsiY3JlYXRlZEF0IjpudWxsLCJ1cGRhdGVkQXQiOm51bGwsImRlbGV0ZWRBdCI6bnVsbCwiaWQiOjEsInN0YXR1cyI6bnVsbCwicGFzc3dvcmQiOiJ0ZXN0Iiwicm9sZSI6bnVsbCwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwibmFtZSI6InRlc3QiLCJsYXN0TmFtZSI6bnVsbCwiZG5pIjpudWxsLCJhZGRyZXNzIjpudWxsLCJwaG9uZSI6bnVsbH19.UnVH-uA1C77NHQKxUkDAibM1GJQmFoPZnDkoYmQLRT-e4q0f8ekPv47c0KBrQI662OdgNDrkp4jMujSYaFY3Zg";
+        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiIxIiwiaWF0IjoxNTgxNjA4MjE3LCJleHAiOjc4OTI5NTU0MTcsInVzZXIiOnsiY3JlYXRlZEF0IjpudWxsLCJ1cGRhdGVkQXQiOm51bGwsImRlbGV0ZWRBdCI6bnVsbCwiaWQiOjEsInN0YXR1cyI6bnVsbCwicGFzc3dvcmQiOiJ0ZXN0Iiwicm9sZSI6eyJpZCI6MSwibmFtZSI6bnVsbCwicHJpdmlsZWdlcyI6W3siaWQiOjEsIm5hbWUiOiJHRVRfQ0xJRU5UIn0seyJpZCI6MiwibmFtZSI6IkNSRUFURV9DTElFTlQifV19LCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJuYW1lIjoidGVzdCIsImxhc3ROYW1lIjpudWxsLCJkbmkiOm51bGwsImFkZHJlc3MiOm51bGwsInBob25lIjpudWxsfX0.WLhGMVeDf5jVygOxCY-PI1F3-BNpWEJjgwOMSLG_S70pBGZ2Is7XznKpjNVUqw_UAR0-ls-Boc2KMWN-lDrNJA";
     }
 
     String getExpiredToken() {
         return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNTgxMzY4NDUwLCJleHAiOjE1ODEyODIwNTAsInVzZXIiOnsiY3JlYXRlZEF0IjpudWxsLCJ1cGRhdGVkQXQiOm51bGwsImRlbGV0ZWRBdCI6bnVsbCwiaWQiOjEsInN0YXR1cyI6bnVsbCwicGFzc3dvcmQiOiJ0ZXN0Iiwicm9sZSI6bnVsbCwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwibmFtZSI6InRlc3QiLCJsYXN0TmFtZSI6bnVsbCwiZG5pIjpudWxsLCJhZGRyZXNzIjpudWxsLCJwaG9uZSI6bnVsbH19.fQZAD6FNuxj0evO3MSJzGo9MO-Qbukk-9sU8Gof3Wt40U2-dG6Xv1SHGobBB44Ufh1tHdYKNMU-2_g5Ijo9kdg";
+    }
+
+    String getTokenWithInvalidSubject() {
+        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJzYXJhc2EiLCJpYXQiOjE1ODE2MDc0MDksImV4cCI6Nzg5Mjk1NDYwOSwidXNlciI6eyJjcmVhdGVkQXQiOm51bGwsInVwZGF0ZWRBdCI6bnVsbCwiZGVsZXRlZEF0IjpudWxsLCJpZCI6MSwic3RhdHVzIjpudWxsLCJwYXNzd29yZCI6InRlc3QiLCJyb2xlIjpudWxsLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJuYW1lIjoidGVzdCIsImxhc3ROYW1lIjpudWxsLCJkbmkiOm51bGwsImFkZHJlc3MiOm51bGwsInBob25lIjpudWxsfX0.kfYDwVqqvyXBY54BfPtjIQcEmuGoJlM2iL2LJZDvzkH7Y9CNKFfbp8ZAZsqO9_zpJbLdoQGke2TjpePUebtESA";
     }
 }

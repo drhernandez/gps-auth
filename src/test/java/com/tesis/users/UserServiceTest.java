@@ -38,8 +38,7 @@ public class UserServiceTest {
     @Test
     public void getUser1() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        NotFoundException e = assertThrows(NotFoundException.class, () -> userService.getUser(1L));
-        assertEquals("User 1 not found", e.getReason());
+        assertFalse(userService.getUser(1L).isPresent());
     }
 
     @DisplayName("User service - getUser(Long id) ok")
@@ -54,7 +53,7 @@ public class UserServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(mock));
 
-        User user = userService.getUser(1L);
+        User user = userService.getUser(1L).get();
 
         assertNotNull(user);
         assertEquals("test", user.getName());

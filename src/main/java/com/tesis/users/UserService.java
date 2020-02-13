@@ -1,5 +1,7 @@
 package com.tesis.users;
 
+import org.checkerframework.checker.nullness.Opt;
+
 import java.util.Optional;
 
 public interface UserService {
@@ -9,7 +11,7 @@ public interface UserService {
      * @param id
      * @return
      */
-    User getUser(Long id);
+    Optional<User> getUser(Long id);
 
     /**
      * Get user by email
