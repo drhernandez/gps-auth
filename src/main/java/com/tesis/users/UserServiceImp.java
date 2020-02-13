@@ -28,13 +28,8 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User getUser(Long id) {
-        Optional<User> user = userRepository.findById(id);
-        if (!user.isPresent()) {
-            throw new NotFoundException(String.format("User %d not found", id));
-        }
-
-        return user.get();
+    public Optional<User> getUser(Long id) {
+        return userRepository.findById(id);
     }
 
     @Override
@@ -85,7 +80,7 @@ public class UserServiceImp implements UserService {
     public User updateUser(Long userId, UserRequestBody userRequestBody) {
         //Revisar el tema de los permisos. Como está ahora, un user con role CLIENT se puede pasar a ADMIN.
 
-        User user = getUser(userId);
+        User user = getUser(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found", userId)));
 
         if (!user.getEmail().equals(userRequestBody.getEmail()) && userRepository.findByEmail(userRequestBody.getEmail()) != null) {
             throw new BadRequestException(String.format("Email %s is already in use", userRequestBody.getEmail()));
@@ -113,7 +108,7 @@ public class UserServiceImp implements UserService {
     @Override
     public void deleteUser(Long id) {
 
-        User user = getUser(id);
+        User user = getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id)));getUser(id);
         user.setStatus(UserStatus.DELETED);
         userRepository.save(user);
     }

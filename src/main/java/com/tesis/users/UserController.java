@@ -1,5 +1,6 @@
 package com.tesis.users;
 
+import com.tesis.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@Valid @PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUser(id));
+        return ResponseEntity.ok(userService.getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id))));
     }
 
     @PostMapping

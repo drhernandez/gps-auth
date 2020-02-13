@@ -54,7 +54,7 @@ public class UserServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(mock));
 
-        User user = userService.getUser(1L);
+        User user = userService.getUser(1L).get();
 
         assertNotNull(user);
         assertEquals("test", user.getName());
