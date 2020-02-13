@@ -22,7 +22,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.security.Key;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -177,14 +176,7 @@ public class AuthenticationServiceTest {
     @Test
     public void logout1() {
 
-        assertThrows(BadRequestException.class, () -> authenticationService.logout(getExpiredToken()));
-    }
-
-    @DisplayName("Authentication service - logout() token with no user claim")
-    @Test
-    public void logout2() {
-
-        assertThrows(BadRequestException.class, () -> authenticationService.logout(getTokenWithNoUserClaim()));
+        assertThrows(UnauthorizedException.class, () -> authenticationService.logout(getExpiredToken()));
     }
 
     @DisplayName("Authentication service - logout() token not found for user")
@@ -193,7 +185,7 @@ public class AuthenticationServiceTest {
 
         when(accessTokenRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(BadRequestException.class, () -> authenticationService.logout(getTokenWithNoUserClaim()));
+        assertThrows(BadRequestException.class, () -> authenticationService.logout(getValidToken()));
     }
 
     @DisplayName("Authentication service - logout() ok")
