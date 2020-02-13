@@ -1,5 +1,6 @@
 package com.tesis.authentication;
 
+import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.UnauthorizedException;
 import com.tesis.users.User;
 import com.tesis.users.UserService;
@@ -16,8 +17,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.security.Key;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -150,6 +152,47 @@ public class AuthenticationServiceTest {
         AccessToken token = authenticationService.login(body);
         assertNotNull(token);
         assertNotNull(token.getToken());
+    }
+
+    @DisplayName("Authentication service - logout() token expired")
+    @Test
+    public void logout1() {
+
+        assertThrows(BadRequestException.class, () -> authenticationService.logout(getExpiredToken()));
+    }
+
+    @DisplayName("Authentication service - logout() token with no user claim")
+    @Test
+    public void logout2() {
+
+        assertThrows(BadRequestException.class, () -> authenticationService.logout(getTokenWithNoUserClaim()));
+    }
+
+    @DisplayName("Authentication service - logout() token not found for user")
+    @Test
+    public void logout3() {
+
+        when(accessTokenRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(BadRequestException.class, () -> authenticationService.logout(getTokenWithNoUserClaim()));
+    }
+
+    @DisplayName("Authentication service - logout() ok")
+    @Test
+    public void logout4() {
+
+        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().build()));
+        doNothing().when(accessTokenRepository).delete(any());
+
+        try {
+            authenticationService.logout(getValidToken());
+        } catch (Exception e) {
+            fail("should not throw exception");
+        }
+    }
+
+    String getTokenWithNoUserClaim() {
+        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNTgxNTUxODM0LCJleHAiOjc4OTI4OTkwMzR9.VnNZuox7XOq2vQknY-YoSFUBev6CtKeIIl6l-eZDAjK8X9MWCMMG3aqHSFlihP2-uMUDYUzR3-DGOP8jiXVUiQ";
     }
 
     String getValidToken() {

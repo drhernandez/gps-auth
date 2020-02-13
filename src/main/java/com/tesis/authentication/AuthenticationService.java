@@ -8,4 +8,10 @@ public interface AuthenticationService {
      * @return
      */
     AccessToken login(ClientCredentialsBody credentialsBody);
+
+    /**
+     * Find token asociated to user and remove it from db
+     * @param accessToken
+     */
+    void logout(String accessToken);
 }
