@@ -2,12 +2,13 @@ package com.tesis.authentication;
 
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.ForbiddenException;
-import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.UnauthorizedException;
 import com.tesis.privileges.Privilege;
 import com.tesis.users.User;
 import com.tesis.users.UserService;
-import io.jsonwebtoken.*;
+import com.tesis.utils.JwtUtils;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class AuthenticationServiceImp implements AuthenticationService {
+public class DefaultAuthenticationService implements AuthenticationService {
 
     private final AccessTokenRepository accessTokenRepository;
     private final UserService userService;
@@ -31,7 +32,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private Key secretKey;
 
     @Autowired
-    public AuthenticationServiceImp(AccessTokenRepository accessTokenRepository, UserService userService, PasswordEncoder passwordEncoder, Key secretKey) {
+    public DefaultAuthenticationService(AccessTokenRepository accessTokenRepository, UserService userService, PasswordEncoder passwordEncoder, Key secretKey) {
         this.accessTokenRepository = accessTokenRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
@@ -48,16 +49,15 @@ public class AuthenticationServiceImp implements AuthenticationService {
             throw new UnauthorizedException();
         }
 
-        Optional<AccessToken> token = accessTokenRepository.findById(user.getId());
-        return token
-                .filter(this::validateAccessTokenToken)
+        return accessTokenRepository.findById(user.getId())
+                .filter(token -> JwtUtils.validateToken(token.getToken(), secretKey))
                 .orElseGet(() -> createAccessToken(user));
     }
 
     @Override
     public void logout(String token) {
 
-        Long userId = getUserIdFromToken(token);
+        Long userId = JwtUtils.getUserIdFromToken(token, secretKey);
         Optional<AccessToken> accessTokenOpt = accessTokenRepository.findById(userId);
         AccessToken accessToken = accessTokenOpt.orElseThrow(() -> new BadRequestException("Invalid access token"));
         accessTokenRepository.delete(accessToken);
@@ -66,7 +66,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     @Override
     public void validatePrivilegesOnAccessToken(String token, List<String> privileges) throws UnauthorizedException, ForbiddenException {
 
-        Long userId = getUserIdFromToken(token);
+        Long userId = JwtUtils.getUserIdFromToken(token, secretKey);
 
         //Valido que el token sea el último generado por el user
         Optional<AccessToken> accessTokenOpt = accessTokenRepository.findById(userId);
@@ -91,21 +91,6 @@ public class AuthenticationServiceImp implements AuthenticationService {
         }
     }
 
-    private boolean validateAccessTokenToken(AccessToken accessToken) {
-
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(accessToken.getToken());
-            return true;
-
-        } catch (JwtException ex) {
-            accessTokenRepository.delete(accessToken);
-            return false;
-        }
-    }
-
     private AccessToken createAccessToken(User user) {
 
         String jws = Jwts.builder()
@@ -113,7 +98,6 @@ public class AuthenticationServiceImp implements AuthenticationService {
                 .setSubject(user.getId().toString())
                 .setIssuedAt(Date.from(ZonedDateTime.now(ZoneId.systemDefault()).toInstant()))
                 .setExpiration(Date.from(ZonedDateTime.now(ZoneId.systemDefault()).plusDays(1).toInstant()))
-//                .setExpiration(Date.from(ZonedDateTime.now(ZoneId.systemDefault()).plusYears(200).toInstant()))
                 .claim("user", user)
                 .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
@@ -125,24 +109,5 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
         accessTokenRepository.save(accessToken);
         return accessToken;
-    }
-
-    private Long getUserIdFromToken(String accessToken) {
-
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(accessToken);
-
-            return Long.parseLong(claims.getBody().getSubject());
-
-        } catch (JwtException e) {
-            logger.error("[message: Invalid token] [error: {}] [stacktrace: {}]", e.getMessage(), e.getStackTrace());
-            throw new UnauthorizedException();
-        } catch (Exception e) {
-            logger.error("[message: Could not parse token subject] [error: {}] [stacktrace: {}]", e.getMessage(), e.getStackTrace());
-            throw new InternalServerErrorException("internal error");
-        }
     }
 }

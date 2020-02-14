@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class PrivilegeServiceImp implements PrivilegeService {
+public class DefaultPrivilegeService implements PrivilegeService {
 
     private final PrivilegeRepository repository;
 
     @Autowired
-    public PrivilegeServiceImp(PrivilegeRepository repository) {
+    public DefaultPrivilegeService(PrivilegeRepository repository) {
         this.repository = repository;
     }
 

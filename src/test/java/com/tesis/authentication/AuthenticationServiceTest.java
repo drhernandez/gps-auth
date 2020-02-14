@@ -3,20 +3,24 @@ package com.tesis.authentication;
 import com.google.common.collect.Sets;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.ForbiddenException;
-import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.UnauthorizedException;
 import com.tesis.privileges.Privilege;
 import com.tesis.roles.Role;
 import com.tesis.users.User;
 import com.tesis.users.UserService;
-import io.jsonwebtoken.io.Decoders;
+import com.tesis.utils.JwtUtils;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import mockit.MockUp;
+import mockit.integration.junit5.JMockitExtension;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -29,7 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith({SpringExtension.class, JMockitExtension.class})
 public class AuthenticationServiceTest {
 
     @Mock
@@ -38,13 +42,15 @@ public class AuthenticationServiceTest {
     private UserService userService;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Spy
+    private Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
-    private Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode("asndajsdnakjsndjkansdjksandjaksndakjsdhasjkkjasdjkajhkdskjsndjkasndkandaksjdnajksdnakdnsajdna"));
-    private AuthenticationServiceImp authenticationService;
+    @InjectMocks
+    private DefaultAuthenticationService authenticationService;
 
     @BeforeEach
     public void setUp() {
-        authenticationService = new AuthenticationServiceImp(accessTokenRepository, userService, passwordEncoder, key);
+        authenticationService = new DefaultAuthenticationService(accessTokenRepository, userService, passwordEncoder, key);
     }
 
     @DisplayName("Authentication service - login() user not found")
@@ -89,7 +95,7 @@ public class AuthenticationServiceTest {
 
         AccessToken mockedToken = AccessToken.builder()
                 .userId(1L)
-                .token(getValidToken())
+                .token("token")
                 .build();
 
         ClientCredentialsBody body = ClientCredentialsBody.builder()
@@ -110,6 +116,13 @@ public class AuthenticationServiceTest {
     @Test
     public void login4() {
 
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return false;
+            }
+        };
+
         User mockedUser = User.builder()
                 .id(1L)
                 .name("test")
@@ -119,7 +132,7 @@ public class AuthenticationServiceTest {
 
         AccessToken mockedToken = AccessToken.builder()
                 .userId(1L)
-                .token(getExpiredToken())
+                .token("expired token")
                 .build();
 
         ClientCredentialsBody body = ClientCredentialsBody.builder()
@@ -176,61 +189,85 @@ public class AuthenticationServiceTest {
     @Test
     public void logout1() {
 
-        assertThrows(UnauthorizedException.class, () -> authenticationService.logout(getExpiredToken()));
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return false;
+            }
+        };
+
+        assertThrows(UnauthorizedException.class, () -> authenticationService.logout("expired token"));
     }
 
     @DisplayName("Authentication service - logout() token not found for user")
     @Test
     public void logout3() {
 
-        when(accessTokenRepository.findById(any())).thenReturn(Optional.empty());
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public Long getUserIdFromToken(String token, Key key) {
+                return 1L;
+            }
+        };
+        when(accessTokenRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(BadRequestException.class, () -> authenticationService.logout(getValidToken()));
+        assertThrows(BadRequestException.class, () -> authenticationService.logout("token"));
     }
 
     @DisplayName("Authentication service - logout() ok")
     @Test
     public void logout4() {
 
-        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().build()));
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public Long getUserIdFromToken(String token, Key key) {
+                return 1L;
+            }
+        };
+        when(accessTokenRepository.findById(1L)).thenReturn(Optional.of(AccessToken.builder().build()));
         doNothing().when(accessTokenRepository).delete(any());
-        assertDoesNotThrow(() -> authenticationService.logout(getValidToken()));
+        assertDoesNotThrow(() -> authenticationService.logout("token"));
     }
 
     @DisplayName("Authentication service - validatePrivilegesOnAccessToken() invalid token")
     @Test
     public void validatePrivilegesOnAccessToken1() {
 
-        assertThrows(UnauthorizedException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getExpiredToken(), Collections.emptyList()));
-    }
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return false;
+            }
+        };
 
-    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() invalid token subject")
-    @Test
-    public void validatePrivilegesOnAccessToken2() {
-
-        assertThrows(InternalServerErrorException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getTokenWithInvalidSubject(), Collections.emptyList()));
-    }
-
-    @DisplayName("Authentication service - validatePrivilegesOnAccessToken() old token")
-    @Test
-    public void validatePrivilegesOnAccessToken3() {
-
-        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token("token").build()));
-        assertThrows(UnauthorizedException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Collections.emptyList()));
+        assertThrows(UnauthorizedException.class, () -> authenticationService.validatePrivilegesOnAccessToken("expired token", Collections.emptyList()));
     }
 
     @DisplayName("Authentication service - validatePrivilegesOnAccessToken() not privilege should only validate token")
     @Test
     public void validatePrivilegesOnAccessToken4() {
 
-        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token(getValidToken()).build()));
-        assertDoesNotThrow(() -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Collections.emptyList()));
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public Long getUserIdFromToken(String token, Key key) {
+                return 1L;
+            }
+        };
+        when(accessTokenRepository.findById(1L)).thenReturn(Optional.of(AccessToken.builder().token("token").build()));
+        assertDoesNotThrow(() -> authenticationService.validatePrivilegesOnAccessToken("token", Collections.emptyList()));
     }
 
     @DisplayName("Authentication service - validatePrivilegesOnAccessToken() invalid privileges")
     @Test
     public void validatePrivilegesOnAccessToken5() {
 
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public Long getUserIdFromToken(String token, Key key) {
+                return 1L;
+            }
+        };
+
         User mockedUser = User.builder()
                 .id(1L)
                 .name("test")
@@ -249,16 +286,23 @@ public class AuthenticationServiceTest {
                 )
                 .build();
 
-        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token(getValidToken()).build()));
+        when(accessTokenRepository.findById(1L)).thenReturn(Optional.of(AccessToken.builder().token("token").build()));
         when(userService.getUser(1L)).thenReturn(Optional.of(mockedUser));
 
-        assertThrows(ForbiddenException.class, () -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Lists.newArrayList("GET_CLIENT", "UPDATE_CLIENT")));
+        assertThrows(ForbiddenException.class, () -> authenticationService.validatePrivilegesOnAccessToken("token", Lists.newArrayList("GET_CLIENT", "UPDATE_CLIENT")));
     }
 
     @DisplayName("Authentication service - validatePrivilegesOnAccessToken() ok")
     @Test
     public void validatePrivilegesOnAccessToken6() {
 
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public Long getUserIdFromToken(String token, Key key) {
+                return 1L;
+            }
+        };
+
         User mockedUser = User.builder()
                 .id(1L)
                 .name("test")
@@ -277,25 +321,9 @@ public class AuthenticationServiceTest {
                 )
                 .build();
 
-        when(accessTokenRepository.findById(any())).thenReturn(Optional.of(AccessToken.builder().token(getValidToken()).build()));
+        when(accessTokenRepository.findById(1L)).thenReturn(Optional.of(AccessToken.builder().token("token").build()));
         when(userService.getUser(1L)).thenReturn(Optional.of(mockedUser));
 
-        assertDoesNotThrow(() -> authenticationService.validatePrivilegesOnAccessToken(getValidToken(), Lists.newArrayList("GET_CLIENT")));
-    }
-
-    String getTokenWithNoUserClaim() {
-        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNTgxNTUxODM0LCJleHAiOjc4OTI4OTkwMzR9.VnNZuox7XOq2vQknY-YoSFUBev6CtKeIIl6l-eZDAjK8X9MWCMMG3aqHSFlihP2-uMUDYUzR3-DGOP8jiXVUiQ";
-    }
-
-    String getValidToken() {
-        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiIxIiwiaWF0IjoxNTgxNjA4MjE3LCJleHAiOjc4OTI5NTU0MTcsInVzZXIiOnsiY3JlYXRlZEF0IjpudWxsLCJ1cGRhdGVkQXQiOm51bGwsImRlbGV0ZWRBdCI6bnVsbCwiaWQiOjEsInN0YXR1cyI6bnVsbCwicGFzc3dvcmQiOiJ0ZXN0Iiwicm9sZSI6eyJpZCI6MSwibmFtZSI6bnVsbCwicHJpdmlsZWdlcyI6W3siaWQiOjEsIm5hbWUiOiJHRVRfQ0xJRU5UIn0seyJpZCI6MiwibmFtZSI6IkNSRUFURV9DTElFTlQifV19LCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJuYW1lIjoidGVzdCIsImxhc3ROYW1lIjpudWxsLCJkbmkiOm51bGwsImFkZHJlc3MiOm51bGwsInBob25lIjpudWxsfX0.WLhGMVeDf5jVygOxCY-PI1F3-BNpWEJjgwOMSLG_S70pBGZ2Is7XznKpjNVUqw_UAR0-ls-Boc2KMWN-lDrNJA";
-    }
-
-    String getExpiredToken() {
-        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNTgxMzY4NDUwLCJleHAiOjE1ODEyODIwNTAsInVzZXIiOnsiY3JlYXRlZEF0IjpudWxsLCJ1cGRhdGVkQXQiOm51bGwsImRlbGV0ZWRBdCI6bnVsbCwiaWQiOjEsInN0YXR1cyI6bnVsbCwicGFzc3dvcmQiOiJ0ZXN0Iiwicm9sZSI6bnVsbCwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwibmFtZSI6InRlc3QiLCJsYXN0TmFtZSI6bnVsbCwiZG5pIjpudWxsLCJhZGRyZXNzIjpudWxsLCJwaG9uZSI6bnVsbH19.fQZAD6FNuxj0evO3MSJzGo9MO-Qbukk-9sU8Gof3Wt40U2-dG6Xv1SHGobBB44Ufh1tHdYKNMU-2_g5Ijo9kdg";
-    }
-
-    String getTokenWithInvalidSubject() {
-        return "eyJ0eXBlIjoiQkVBUkVSIiwiYWxnIjoiSFM1MTIifQ.eyJzdWIiOiJzYXJhc2EiLCJpYXQiOjE1ODE2MDc0MDksImV4cCI6Nzg5Mjk1NDYwOSwidXNlciI6eyJjcmVhdGVkQXQiOm51bGwsInVwZGF0ZWRBdCI6bnVsbCwiZGVsZXRlZEF0IjpudWxsLCJpZCI6MSwic3RhdHVzIjpudWxsLCJwYXNzd29yZCI6InRlc3QiLCJyb2xlIjpudWxsLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJuYW1lIjoidGVzdCIsImxhc3ROYW1lIjpudWxsLCJkbmkiOm51bGwsImFkZHJlc3MiOm51bGwsInBob25lIjpudWxsfX0.kfYDwVqqvyXBY54BfPtjIQcEmuGoJlM2iL2LJZDvzkH7Y9CNKFfbp8ZAZsqO9_zpJbLdoQGke2TjpePUebtESA";
+        assertDoesNotThrow(() -> authenticationService.validatePrivilegesOnAccessToken("token", Lists.newArrayList("GET_CLIENT")));
     }
 }

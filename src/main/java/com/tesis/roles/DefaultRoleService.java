@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class RoleServiceImp implements RoleService {
+public class DefaultRoleService implements RoleService {
 
     private final RoleRepository roleRepository;
     private final PrivilegeService privilegeService;
 
     @Autowired
-    public RoleServiceImp(RoleRepository roleRepository, PrivilegeService privilegeService) {
+    public DefaultRoleService(RoleRepository roleRepository, PrivilegeService privilegeService) {
         this.roleRepository = roleRepository;
         this.privilegeService = privilegeService;
     }

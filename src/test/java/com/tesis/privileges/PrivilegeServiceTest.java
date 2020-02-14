@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.EntityNotFoundException;
@@ -25,7 +24,7 @@ public class PrivilegeServiceTest {
     private PrivilegeRepository privilegeRepository;
 
     @InjectMocks
-    private PrivilegeServiceImp privilegeService;
+    private DefaultPrivilegeService privilegeService;
 
     @DisplayName("Privilege service - getById() entity not found")
     @Test

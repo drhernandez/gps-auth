@@ -1,6 +1,6 @@
 package com.tesis.users;
 
-import com.tesis.models.AuditModel;
+import com.tesis.audit.AuditModel;
 import com.tesis.roles.Role;
 import lombok.*;
 
