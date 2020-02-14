@@ -32,7 +32,7 @@ public class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @InjectMocks
-    private UserServiceImp userService;
+    private DefaultUserService userService;
 
     @DisplayName("User service - getUser(Long id) entity not found")
     @Test

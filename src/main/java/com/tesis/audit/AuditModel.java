@@ -1,4 +1,4 @@
-package com.tesis.models;
+package com.tesis.audit;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;

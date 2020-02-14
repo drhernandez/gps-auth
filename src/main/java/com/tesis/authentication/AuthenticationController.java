@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @RestController

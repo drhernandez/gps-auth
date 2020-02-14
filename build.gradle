@@ -49,10 +49,13 @@ dependencies {
     }
     testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
     testCompile 'org.hibernate:hibernate-entitymanager:5.3.15.Final'
+    testCompile 'org.jmockit:jmockit:1.49'
+    testCompile 'io.jsonwebtoken:jjwt-impl:0.11.0'
 }
 
 test {
     useJUnitPlatform()
+    jvmArgs "-javaagent:${classpath.find { it.name.contains("jmockit") }.absolutePath}"
 }
 
 jacoco {

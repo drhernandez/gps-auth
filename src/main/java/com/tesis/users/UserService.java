@@ -1,7 +1,5 @@
 package com.tesis.users;
 
-import org.checkerframework.checker.nullness.Opt;
-
 import java.util.Optional;
 
 public interface UserService {

@@ -14,14 +14,14 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class UserServiceImp implements UserService {
+public class DefaultUserService implements UserService {
 
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImp(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public DefaultUserService(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
@@ -82,7 +82,9 @@ public class UserServiceImp implements UserService {
 
         User user = getUser(userId).orElseThrow(() -> new NotFoundException(String.format("User %s not found", userId)));
 
-        if (!user.getEmail().equals(userRequestBody.getEmail()) && userRepository.findByEmail(userRequestBody.getEmail()) != null) {
+        if (userRequestBody.getEmail() != null &&
+                !user.getEmail().equals(userRequestBody.getEmail()) &&
+                userRepository.findByEmail(userRequestBody.getEmail()) != null) {
             throw new BadRequestException(String.format("Email %s is already in use", userRequestBody.getEmail()));
         }
 
@@ -108,7 +110,7 @@ public class UserServiceImp implements UserService {
     @Override
     public void deleteUser(Long id) {
 
-        User user = getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id)));getUser(id);
+        User user = getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id)));
         user.setStatus(UserStatus.DELETED);
         userRepository.save(user);
     }
