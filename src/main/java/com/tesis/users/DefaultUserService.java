@@ -29,18 +29,18 @@ public class DefaultUserService implements UserService {
 
     @Override
     public Optional<User> getUser(Long id) {
-        return userRepository.findById(id);
+        return Optional.ofNullable(userRepository.findByIdAndStatusIsNot(id, UserStatus.DELETED));
     }
 
     @Override
     public Optional<User> getUser(String email) {
-        return Optional.ofNullable(userRepository.findByEmail(email));
+        return Optional.ofNullable(userRepository.findByEmailAndStatusIsNot(email, UserStatus.DELETED));
     }
 
     @Override
     public User createUser(UserRequestBody userRequestBody) {
 
-        if (userRepository.findByEmail(userRequestBody.getEmail()) != null) {
+        if (getUser(userRequestBody.getEmail()).isPresent()) {
             throw new BadRequestException(String.format("Email %s is already in use", userRequestBody.getEmail()));
         }
 
@@ -84,7 +84,7 @@ public class DefaultUserService implements UserService {
 
         if (userRequestBody.getEmail() != null &&
                 !user.getEmail().equals(userRequestBody.getEmail()) &&
-                userRepository.findByEmail(userRequestBody.getEmail()) != null) {
+                getUser(userRequestBody.getEmail()).isPresent()) {
             throw new BadRequestException(String.format("Email %s is already in use", userRequestBody.getEmail()));
         }
 
