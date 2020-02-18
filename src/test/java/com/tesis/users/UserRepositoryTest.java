@@ -24,11 +24,22 @@ public class UserRepositoryTest {
                 .lastName("test")
                 .email("test@test.com")
                 .dni("123")
+                .status(UserStatus.ACTIVE)
                 .build();
-        userRepository.save(mock);
 
-        User found = userRepository.findByEmail("test@test.com");
-        User notFound = userRepository.findByEmail("invalid@test.com");
+        User mock2 = User.builder()
+                .name("deleted")
+                .lastName("test")
+                .email("deleted@test.com")
+                .dni("123")
+                .status(UserStatus.DELETED)
+                .build();
+
+        userRepository.save(mock);
+        userRepository.save(mock2);
+
+        User found = userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED);
+        User notFound = userRepository.findByEmailAndStatusIsNot("deleted@test.com", UserStatus.DELETED);
 
         assertNotNull(found);
         assertEquals("test", found.getName());
