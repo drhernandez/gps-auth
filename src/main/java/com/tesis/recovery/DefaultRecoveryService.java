@@ -1,5 +1,7 @@
 package com.tesis.recovery;
 
+import com.google.common.collect.Lists;
+import com.tesis.emails.EmailService;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.UnauthorizedException;
@@ -11,12 +13,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -27,12 +31,14 @@ public class DefaultRecoveryService implements RecoveryService {
 
     private final RecoveryRepository recoveryRepository;
     private final UserService userService;
+    private final EmailService emailService;
     private Key secretKey;
 
     @Autowired
-    public DefaultRecoveryService(RecoveryRepository recoveryRepository, UserService userService, Key secretKey) {
+    public DefaultRecoveryService(RecoveryRepository recoveryRepository, UserService userService, EmailService emailService, Key secretKey) {
         this.recoveryRepository = recoveryRepository;
         this.userService = userService;
+        this.emailService = emailService;
         this.secretKey = secretKey;
     }
 
@@ -44,9 +50,13 @@ public class DefaultRecoveryService implements RecoveryService {
                 .orElseThrow(() -> new BadRequestException(String.format("Email %s is not registered", email)))
                 .getId();
 
-        return recoveryRepository.findById(userId)
+        RecoveryToken recoveryToken = recoveryRepository.findById(userId)
                 .filter(token -> validateToken(token.getToken()))
                 .orElseGet(() -> generateRandomToken(userId));
+
+        emailService.sendRecoveryPasswordEmail(Lists.newArrayList(user.get().getEmail()), recoveryToken.getToken());
+
+        return recoveryToken;
     }
 
     @Override
