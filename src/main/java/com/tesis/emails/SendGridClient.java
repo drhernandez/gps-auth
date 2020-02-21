@@ -11,9 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static com.tesis.config.RestClientConfigs.SLOW;
 
@@ -48,7 +51,7 @@ public class SendGridClient {
             if (!response.isSuccess()) {
                 ErrorResponse errorResponse = (ErrorResponse) response.mapError(ErrorResponse.class);
                 logger.error("[message: Invalid response sending mail] [error: {}]", objectMapper.writeValueAsString(errorResponse));
-                throw new InternalServerErrorException("internal error");
+                throw new ResponseStatusException(HttpStatus.resolve(response.getStatus()), objectMapper.writeValueAsString(errorResponse));
             }
 
         } catch (UnirestException e) {

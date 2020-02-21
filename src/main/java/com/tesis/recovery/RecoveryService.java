@@ -3,7 +3,7 @@ package com.tesis.recovery;
 public interface RecoveryService {
 
     /**
-     * Generate a recovery token base on user email
+     * Generate a recovery token base on user email and send and email with the token
      * @param email
      * @return
      */
