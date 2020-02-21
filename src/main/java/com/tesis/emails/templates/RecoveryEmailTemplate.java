@@ -5,7 +5,6 @@ import com.tesis.emails.models.EmailModel;
 import com.tesis.emails.models.MailAddress;
 import com.tesis.emails.models.Personalization;
 import lombok.Builder;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.List;

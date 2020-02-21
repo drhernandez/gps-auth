@@ -27,6 +27,7 @@ jwt:
   secret-key: ${JWT_SECRET_KEY:ccXO1GSYaGNUaQthSgEWqym6BVdLzKITPmxeYff/KbAUXc0k8y6yirNbBBiYT7IS32r567Pzg0rcmjniF5zd6w==}
 
 email:
+  sendgrid-base-url: https://api.sendgrid.com/v3
   secret-key: ${EMAIL_SECRET_KEY}
   sender-address: geoloc.tesis@gmail.com
   recovery:
