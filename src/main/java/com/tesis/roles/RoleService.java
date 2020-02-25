@@ -3,6 +3,7 @@ package com.tesis.roles;
 import javassist.NotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RoleService {
 
@@ -11,7 +12,7 @@ public interface RoleService {
      * @param name
      * @return
      */
-    Role getByName(String name);
+    Optional<Role> getByName(String name);
 
     /**
      * Get all roles

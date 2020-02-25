@@ -1,14 +1,13 @@
 package com.tesis.privileges;
 
-import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.NotFoundException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DefaultPrivilegeService implements PrivilegeService {
@@ -21,18 +20,13 @@ public class DefaultPrivilegeService implements PrivilegeService {
     }
 
     @Override
-    public Privilege getById(Long id) {
-        return repository.getOne(id);
+    public Optional<Privilege> getById(Long id) {
+        return repository.findById(id);
     }
 
     @Override
-    public Privilege getByName(String name) {
-        Privilege privilege = repository.getByName(name);
-        if (privilege == null) {
-            throw new NotFoundException(String.format("Privilege %s not found", name));
-        }
-
-        return privilege;
+    public Optional<Privilege> getByName(String name) {
+        return Optional.ofNullable(repository.getByName(name));
     }
 
     @Override

@@ -88,7 +88,7 @@ public class UserServiceTest {
         assertEquals("test", user.get().getName());
     }
 
-    @DisplayName("User service - createUser() user not found")
+    @DisplayName("User service - createUser() existing email")
     @Test
     public void createUser1() {
 
@@ -100,7 +100,7 @@ public class UserServiceTest {
         assertEquals("Email test@test.com is already in use", e.getReason());
     }
 
-    @DisplayName("User service - createUser() existing user")
+    @DisplayName("User service - createUser() invalid role")
     @Test
     public void createUser2() {
 
@@ -110,7 +110,7 @@ public class UserServiceTest {
                 .build();
 
         when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
-        when(roleService.getByName("TEST")).thenThrow(NotFoundException.class);
+        when(roleService.getByName("TEST")).thenReturn(Optional.empty());
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.createUser(requestBody));
         assertEquals("Could not create user with invalid role TEST", e.getReason());
@@ -131,7 +131,7 @@ public class UserServiceTest {
         DataIntegrityViolationException outterE = new DataIntegrityViolationException("error", innerE);
 
         when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
-        when(roleService.getByName("TEST")).thenReturn(role);
+        when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
         when(userRepository.save(any())).thenThrow(outterE);
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.createUser(requestBody));
@@ -153,7 +153,7 @@ public class UserServiceTest {
         Role role = Role.builder().name("TEST").build();
 
         when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
-        when(roleService.getByName("TEST")).thenReturn(role);
+        when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
         when(passwordEncoder.encode(anyString())).thenReturn("hashed password");
 
         User user = userService.createUser(requestBody);
@@ -228,7 +228,7 @@ public class UserServiceTest {
 
         when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(mock);
         when(userRepository.findByEmailAndStatusIsNot("test2@test.com", UserStatus.DELETED)).thenReturn(null);
-        when(roleService.getByName("INVALID_ROLE")).thenThrow(NotFoundException.class);
+        when(roleService.getByName("INVALID_ROLE")).thenReturn(Optional.empty());
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.updateUser(1L, requestBody));
         assertEquals("Could not update user with invalid role INVALID_ROLE", e.getReason());
@@ -265,7 +265,7 @@ public class UserServiceTest {
 
         when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(mock);
         when(userRepository.findByEmailAndStatusIsNot("test2@test.com", UserStatus.DELETED)).thenReturn(null);
-        when(roleService.getByName("TEST2")).thenReturn(mockRole);
+        when(roleService.getByName("TEST2")).thenReturn(Optional.of(mockRole));
 
         User updatedUser = userService.updateUser(1L, requestBody);
         assertNotNull(updatedUser);

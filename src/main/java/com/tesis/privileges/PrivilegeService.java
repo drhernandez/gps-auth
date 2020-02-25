@@ -1,6 +1,7 @@
 package com.tesis.privileges;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PrivilegeService {
 
@@ -9,14 +10,14 @@ public interface PrivilegeService {
      * @param id
      * @return
      */
-    Privilege getById(Long id);
+    Optional<Privilege> getById(Long id);
 
     /**
      * Get Privilege by name
      * @param name
      * @return
      */
-    Privilege getByName(String name);
+    Optional<Privilege> getByName(String name);
 
     /**
      * Get all existing privileges

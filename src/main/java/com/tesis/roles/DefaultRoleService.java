@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,13 +28,8 @@ public class DefaultRoleService implements RoleService {
     }
 
     @Override
-    public Role getByName(String name) {
-        Role role = roleRepository.getByName(name);
-        if (role == null) {
-            throw new NotFoundException(String.format("Role %s not found", name));
-        }
-
-        return role;
+    public Optional<Role> getByName(String name) {
+        return Optional.ofNullable(roleRepository.getByName(name));
     }
 
     @Override
@@ -80,7 +76,8 @@ public class DefaultRoleService implements RoleService {
     @Override
     public Role updatePrivileges(String roleName, List<String> privilegeNames) {
 
-        Role role = getByName(roleName);
+        Role role = getByName(roleName)
+                .orElseThrow(() -> new NotFoundException(String.format("Role %s not found", roleName)));
 
         if (privilegeNames == null || privilegeNames.isEmpty()) {
             throw new BadRequestException(String.format("Could not update role %s with no privileges", roleName));
@@ -105,7 +102,9 @@ public class DefaultRoleService implements RoleService {
     @Override
     public void deleteRole(String roleName) {
 
-        Role role = getByName(roleName);
+        Role role = getByName(roleName)
+                .orElseThrow(() -> new NotFoundException(String.format("Role %s not found", roleName)));
+
         roleRepository.delete(role);
     }
 }
