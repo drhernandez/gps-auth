@@ -12,6 +12,7 @@ public class RestClientConfigs {
     public static final String FAST = "fast";
     public static final String MID = "mid";
     public static final String SLOW = "slow";
+    public static final String VERY_SLOW = "very_slow";
 
     @Bean
     @Qualifier(FAST)
@@ -51,6 +52,21 @@ public class RestClientConfigs {
         slowInstance.config()
                 .socketTimeout(2000)
                 .connectTimeout(2500)
+                .concurrency(100, 20)
+                .automaticRetries(true)
+                .addShutdownHook(true);
+
+        return slowInstance;
+    }
+
+    @Bean
+    @Qualifier(VERY_SLOW)
+    public UnirestInstance verySlowInstance() {
+
+        UnirestInstance slowInstance = Unirest.primaryInstance();
+        slowInstance.config()
+                .socketTimeout(5000)
+                .connectTimeout(5500)
                 .concurrency(100, 20)
                 .automaticRetries(true)
                 .addShutdownHook(true);

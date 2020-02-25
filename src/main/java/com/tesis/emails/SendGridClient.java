@@ -17,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
-import static com.tesis.config.RestClientConfigs.SLOW;
+import static com.tesis.config.RestClientConfigs.VERY_SLOW;
 
 @Slf4j
 @Component
@@ -29,7 +29,7 @@ public class SendGridClient {
     private ObjectMapper objectMapper;
 
     @Autowired
-    public SendGridClient(@Qualifier(SLOW) UnirestInstance client, ObjectMapper objectMapper, @Value("${email.secret-key}") String apiSecretKey, @Value("${email.sendgrid-base-url}") String baseUrl) {
+    public SendGridClient(@Qualifier(VERY_SLOW) UnirestInstance client, ObjectMapper objectMapper, @Value("${email.secret-key}") String apiSecretKey, @Value("${email.sendgrid-base-url}") String baseUrl) {
         this.client = client;
         this.objectMapper = objectMapper;
         this.apiSecretKey = apiSecretKey;

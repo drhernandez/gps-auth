@@ -1,34 +1,5 @@
 spring:
+  profiles:
+    active: ${SCOPE_SUFFIX}
   mvc:
     throw-exception-if-no-handler-found: true
-
-  datasource:
-    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/gps_auth_db}
-    username: ${JDBC_DATABASE_USERNAME:postgres}
-    password: ${JDBC_DATABASE_PASSWORD:postgres}
-    hikari:
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      maximum-pool-size: 5
-
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-
-server:
-  port: ${PORT:8080}
-
-jwt:
-  secret-key: ${JWT_SECRET_KEY:ccXO1GSYaGNUaQthSgEWqym6BVdLzKITPmxeYff/KbAUXc0k8y6yirNbBBiYT7IS32r567Pzg0rcmjniF5zd6w==}
-
-email:
-  sendgrid-base-url: https://api.sendgrid.com/v3
-  secret-key: ${EMAIL_SECRET_KEY}
-  sender-address: geoloc.tesis@gmail.com
-  recovery:
-    url: http://localhost:3000/recovery/

@@ -1,0 +1,34 @@
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+  datasource:
+    url: ${JDBC_DATABASE_URL}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 5
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: ${PORT}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+
+email:
+  sendgrid-base-url: https://api.sendgrid.com/v3
+  secret-key: ${EMAIL_SECRET_KEY}
+  sender-address: geoloc.tesis@gmail.com
+  recovery:
+    url: https://gps-auth.herokuapp.com/recovery/validate/
