@@ -32,17 +32,16 @@ public class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @InjectMocks
-    private UserServiceImp userService;
+    private DefaultUserService userService;
 
-    @DisplayName("User service - getUser() entity not found")
+    @DisplayName("User service - getUser(Long id) entity not found")
     @Test
     public void getUser1() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        NotFoundException e = assertThrows(NotFoundException.class, () -> userService.getUser(1L));
-        assertEquals("User 1 not found", e.getReason());
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(null);
+        assertFalse(userService.getUser(1L).isPresent());
     }
 
-    @DisplayName("User service - getUser() ok")
+    @DisplayName("User service - getUser(Long id) ok")
     @Test
     public void getUser2() {
 
@@ -52,27 +51,56 @@ public class UserServiceTest {
                 .lastName("test")
                 .build();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mock));
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(mock);
 
-        User user = userService.getUser(1L);
+        User user = userService.getUser(1L).get();
 
         assertNotNull(user);
         assertEquals("test", user.getName());
     }
 
-    @DisplayName("User service - createUser() user not found")
+    @DisplayName("User service - getUser(String email) entity not found")
+    @Test
+    public void getUser3() {
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+        Optional<User> user = userService.getUser("test@test.com");
+
+        assertNotNull(user);
+        assertFalse(user.isPresent());
+    }
+
+    @DisplayName("User service - getUser(String email) ok")
+    @Test
+    public void getUser4() {
+
+        User mock = User.builder()
+                .id(1L)
+                .name("test")
+                .lastName("test")
+                .email("test@test.com")
+                .build();
+
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(mock);
+
+        Optional<User> user = userService.getUser("test@test.com");
+
+        assertTrue(user.isPresent());
+        assertEquals("test", user.get().getName());
+    }
+
+    @DisplayName("User service - createUser() existing email")
     @Test
     public void createUser1() {
 
         UserRequestBody requestBody = UserRequestBody.builder().email("test@test.com").build();
 
-        when(userRepository.findByEmail("test@test.com")).thenReturn(User.builder().build());
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(User.builder().build());
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.createUser(requestBody));
         assertEquals("Email test@test.com is already in use", e.getReason());
     }
 
-    @DisplayName("User service - createUser() existing user")
+    @DisplayName("User service - createUser() invalid role")
     @Test
     public void createUser2() {
 
@@ -81,8 +109,8 @@ public class UserServiceTest {
                 .role("TEST")
                 .build();
 
-        when(userRepository.findByEmail("test@test.com")).thenReturn(null);
-        when(roleService.getByName("TEST")).thenThrow(NotFoundException.class);
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("TEST")).thenReturn(Optional.empty());
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.createUser(requestBody));
         assertEquals("Could not create user with invalid role TEST", e.getReason());
@@ -102,8 +130,8 @@ public class UserServiceTest {
         ConstraintViolationException innerE = new ConstraintViolationException("error", new SQLException(), "name");
         DataIntegrityViolationException outterE = new DataIntegrityViolationException("error", innerE);
 
-        when(userRepository.findByEmail("test@test.com")).thenReturn(null);
-        when(roleService.getByName("TEST")).thenReturn(role);
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
         when(userRepository.save(any())).thenThrow(outterE);
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.createUser(requestBody));
@@ -124,8 +152,8 @@ public class UserServiceTest {
 
         Role role = Role.builder().name("TEST").build();
 
-        when(userRepository.findByEmail("test@test.com")).thenReturn(null);
-        when(roleService.getByName("TEST")).thenReturn(role);
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
         when(passwordEncoder.encode(anyString())).thenReturn("hashed password");
 
         User user = userService.createUser(requestBody);
@@ -138,7 +166,7 @@ public class UserServiceTest {
     @Test
     public void updateUser1() {
 
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(null);
 
         NotFoundException e = assertThrows(NotFoundException.class, () -> userService.updateUser(1L, null));
         assertEquals("User 1 not found", e.getReason());
@@ -167,8 +195,8 @@ public class UserServiceTest {
                 .email("test2@test.com")
                 .build();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mock));
-        when(userRepository.findByEmail("test2@test.com")).thenReturn(new User());
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(mock);
+        when(userRepository.findByEmailAndStatusIsNot("test2@test.com", UserStatus.DELETED)).thenReturn(new User());
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.updateUser(1L, requestBody));
         assertEquals("Email test2@test.com is already in use", e.getReason());
@@ -198,9 +226,9 @@ public class UserServiceTest {
                 .role("INVALID_ROLE")
                 .build();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mock));
-        when(userRepository.findByEmail("test2@test.com")).thenReturn(null);
-        when(roleService.getByName("INVALID_ROLE")).thenThrow(NotFoundException.class);
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(mock);
+        when(userRepository.findByEmailAndStatusIsNot("test2@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("INVALID_ROLE")).thenReturn(Optional.empty());
 
         BadRequestException e = assertThrows(BadRequestException.class, () -> userService.updateUser(1L, requestBody));
         assertEquals("Could not update user with invalid role INVALID_ROLE", e.getReason());
@@ -235,9 +263,9 @@ public class UserServiceTest {
                 .role("TEST2")
                 .build();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mock));
-        when(userRepository.findByEmail("test2@test.com")).thenReturn(null);
-        when(roleService.getByName("TEST2")).thenReturn(mockRole);
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(mock);
+        when(userRepository.findByEmailAndStatusIsNot("test2@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("TEST2")).thenReturn(Optional.of(mockRole));
 
         User updatedUser = userService.updateUser(1L, requestBody);
         assertNotNull(updatedUser);
@@ -249,7 +277,7 @@ public class UserServiceTest {
     @Test
     public void deleteUser1() {
 
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(null);
 
         NotFoundException e = assertThrows(NotFoundException.class, () -> userService.updateUser(1L, null));
         assertEquals("User 1 not found", e.getReason());
@@ -273,7 +301,7 @@ public class UserServiceTest {
                 )
                 .build();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mock));
+        when(userRepository.findByIdAndStatusIsNot(1L, UserStatus.DELETED)).thenReturn(mock);
 
         try {
             userService.deleteUser(1L);

@@ -5,7 +5,8 @@ import com.tesis.exceptions.BadRequestException;
 public enum UserStatus {
 
     ACTIVE,
-    INACTIVE;
+    INACTIVE,
+    DELETED;
 
     public static UserStatus fromName(String name) {
         try {

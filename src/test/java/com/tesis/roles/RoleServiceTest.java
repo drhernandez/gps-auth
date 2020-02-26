@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -27,13 +27,13 @@ public class RoleServiceTest {
     @Mock
     private PrivilegeService privilegeService;
     @InjectMocks
-    private RoleServiceImp roleService;
+    private DefaultRoleService roleService;
 
     @DisplayName("Role service - getByName() entity not found")
     @Test
     public void getByName1() {
         when(roleRepository.getByName("TEST")).thenReturn(null);
-        assertThrows(NotFoundException.class, () -> roleService.getByName("TEST"));
+        assertFalse(roleService.getByName("TEST").isPresent());
     }
 
     @DisplayName("Role service - getByName() entity found")
@@ -42,9 +42,9 @@ public class RoleServiceTest {
         Role mock = Role.builder().id(1L).name("CLIENT").build();
         when(roleRepository.getByName("CLIENT")).thenReturn(mock);
 
-        Role role = roleService.getByName("CLIENT");
-        assertNotNull(role);
-        assertEquals("CLIENT", role.getName());
+        Optional<Role> role = roleService.getByName("CLIENT");
+        assertTrue(role.isPresent());
+        assertEquals("CLIENT", role.get().getName());
     }
 
     @DisplayName("Role service - getAllByName() partial match")
