@@ -1,5 +1,6 @@
 package com.tesis.recovery;
 
+import com.tesis.emails.EmailService;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.NotFoundException;
@@ -18,14 +19,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.server.ResponseStatusException;
 
-import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({SpringExtension.class, JMockitExtension.class})
@@ -35,6 +36,8 @@ public class RecoveryServiceTest {
     private RecoveryRepository recoveryRepository;
     @Mock
     private UserService userService;
+    @Mock
+    private EmailService emailService;
     @Spy
     private Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
@@ -49,9 +52,39 @@ public class RecoveryServiceTest {
         assertThrows(BadRequestException.class, () -> recoveryService.createToken("test@test.com"));
     }
 
-    @DisplayName("Recovery service - createToken() existing token but expired, should create a new one")
+    @DisplayName("Recovery service - createToken() error sending mail")
     @Test
     public void createToken2() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return false;
+            }
+        };
+
+        User mockedUser = User.builder()
+                .id(1L)
+                .name("test")
+                .email("test@test.com")
+                .password("test")
+                .build();
+
+        RecoveryToken mockedToken = RecoveryToken.builder()
+                .userId(1L)
+                .token("token")
+                .build();
+
+        when(userService.getUser("test@test.com")).thenReturn(Optional.of(mockedUser));
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.of(mockedToken));
+        doThrow(ResponseStatusException.class).when(emailService).sendRecoveryPasswordEmail(anyList(), anyString());
+
+        assertThrows(ResponseStatusException.class, () -> recoveryService.createToken("test@test.com"));
+    }
+
+    @DisplayName("Recovery service - createToken() existing token but expired, should create a new one")
+    @Test
+    public void createToken3() {
 
         new MockUp<JwtUtils>() {
             @mockit.Mock
@@ -82,7 +115,7 @@ public class RecoveryServiceTest {
 
     @DisplayName("Recovery service - createToken() existing token, should not create a new one")
     @Test
-    public void createToken3() {
+    public void createToken4() {
 
         new MockUp<JwtUtils>() {
             @mockit.Mock
@@ -113,7 +146,7 @@ public class RecoveryServiceTest {
 
     @DisplayName("Recovery service - createToken() ok")
     @Test
-    public void createToken4() {
+    public void createToken5() {
 
         User mockedUser = User.builder()
                 .id(1L)

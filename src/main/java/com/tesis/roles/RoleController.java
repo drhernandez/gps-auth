@@ -1,5 +1,6 @@
 package com.tesis.roles;
 
+import com.tesis.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,10 @@ public class RoleController {
 
     @GetMapping("/{name}")
     public ResponseEntity<Role> getByName(@Valid @PathVariable String name) {
-        return ResponseEntity.ok(roleService.getByName(name));
+        return ResponseEntity.ok(
+                roleService.getByName(name)
+                        .orElseThrow(() -> new NotFoundException(String.format("Role %s not found", name)))
+        );
     }
 
     @GetMapping

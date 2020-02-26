@@ -44,12 +44,8 @@ public class DefaultUserService implements UserService {
             throw new BadRequestException(String.format("Email %s is already in use", userRequestBody.getEmail()));
         }
 
-        Role role;
-        try {
-            role = roleService.getByName(userRequestBody.getRole());
-        } catch (NotFoundException e) {
-            throw new BadRequestException(String.format("Could not create user with invalid role %s", userRequestBody.getRole()));
-        }
+        Role role = roleService.getByName(userRequestBody.getRole())
+                .orElseThrow(() -> new BadRequestException(String.format("Could not create user with invalid role %s", userRequestBody.getRole())));
 
         User user = User.builder()
                 .name(userRequestBody.getName())
@@ -89,12 +85,9 @@ public class DefaultUserService implements UserService {
         }
 
         if (!Strings.isNullOrEmpty(userRequestBody.getRole())) {
-            try {
-                Role role = roleService.getByName(userRequestBody.getRole());
-                user.setRole(role);
-            } catch (NotFoundException e) {
-                throw new BadRequestException(String.format("Could not update user with invalid role %s", userRequestBody.getRole()));
-            }
+            Role role = roleService.getByName(userRequestBody.getRole())
+                    .orElseThrow(() -> new BadRequestException(String.format("Could not update user with invalid role %s", userRequestBody.getRole())));
+            user.setRole(role);
         }
 
         if (!Strings.isNullOrEmpty(userRequestBody.getPassword())) {

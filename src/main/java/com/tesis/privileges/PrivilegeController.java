@@ -1,5 +1,6 @@
 package com.tesis.privileges;
 
+import com.tesis.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,10 @@ public class PrivilegeController {
 
     @GetMapping("/{name}")
     public ResponseEntity<Privilege> getByName(@Valid @PathVariable String name) {
-        return ResponseEntity.ok(privilegeService.getByName(name));
+        return ResponseEntity.ok(
+                privilegeService.getByName(name)
+                        .orElseThrow(() -> new NotFoundException(String.format("Privilege %s not found", name)))
+        );
     }
 
     @GetMapping

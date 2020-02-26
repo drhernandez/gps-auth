@@ -1,6 +1,5 @@
 package com.tesis.privileges;
 
-import com.tesis.exceptions.NotFoundException;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,8 +8,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,16 +29,16 @@ public class PrivilegeServiceTest {
     @Test
     public void getById1() {
 
-        when(privilegeRepository.getOne(1L)).thenThrow(EntityNotFoundException.class);
-        assertThrows(EntityNotFoundException.class, () -> privilegeService.getById(1L));
+        when(privilegeRepository.findById(1L)).thenReturn(Optional.empty());
+        assertFalse(privilegeService.getById(1L).isPresent());
     }
 
     @DisplayName("Privilege service - getById() entity found")
     @Test
     public void getById2() {
 
-        when(privilegeRepository.getOne(1L)).thenReturn(Privilege.builder().id(1L).name("TEST").build());
-        Privilege privilege = privilegeService.getById(1L);
+        when(privilegeRepository.findById(1L)).thenReturn(Optional.of(Privilege.builder().id(1L).name("TEST").build()));
+        Privilege privilege = privilegeService.getById(1L).get();
         assertEquals("TEST", privilege.getName());
     }
 
@@ -47,8 +46,8 @@ public class PrivilegeServiceTest {
     @Test
     public void getByName1() {
 
-        when(privilegeRepository.getByName("TEST")).thenThrow(NotFoundException.class);
-        assertThrows(NotFoundException.class, () -> privilegeService.getByName("TEST"));
+        when(privilegeRepository.getByName("TEST")).thenReturn(null);
+        assertFalse(privilegeService.getByName("TEST").isPresent());
     }
 
     @DisplayName("Privilege service - getByName() entity found")
@@ -56,9 +55,10 @@ public class PrivilegeServiceTest {
     public void getByName2() {
 
         when(privilegeRepository.getByName("TEST")).thenReturn(Privilege.builder().id(1L).name("TEST").build());
-        Privilege privilege = privilegeService.getByName("TEST");
-        assertEquals(1, privilege.getId());
-        assertEquals("TEST", privilege.getName());
+        Optional<Privilege> privilege = privilegeService.getByName("TEST");
+        assertTrue(privilege.isPresent());
+        assertEquals(1, privilege.get().getId());
+        assertEquals("TEST", privilege.get().getName());
     }
 
     @DisplayName("Privilege service - getAllByName() empty list")
