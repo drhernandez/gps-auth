@@ -107,6 +107,10 @@ public class DefaultAuthenticationService implements AuthenticationService {
                 .token(jws)
                 .build();
 
+        if (accessTokenRepository.existsById(accessToken.getUserId())) {
+            accessTokenRepository.deleteById(accessToken.getUserId());
+        }
+
         accessTokenRepository.save(accessToken);
         return accessToken;
     }
