@@ -2,7 +2,6 @@ package com.tesis.authentication;
 
 import com.tesis.exceptions.ForbiddenException;
 import com.tesis.exceptions.UnauthorizedException;
-import com.tesis.privileges.Privilege;
 
 import java.util.List;
 

@@ -1,6 +1,5 @@
 package com.tesis.privileges;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tesis.roles.Role;
 import lombok.*;

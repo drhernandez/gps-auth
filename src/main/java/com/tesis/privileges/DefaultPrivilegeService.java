@@ -1,6 +1,5 @@
 package com.tesis.privileges;
 
-import com.tesis.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

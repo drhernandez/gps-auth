@@ -1,6 +1,5 @@
 package com.tesis.roles;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.tesis.privileges.Privilege;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
