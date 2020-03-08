@@ -29,6 +29,6 @@ jwt:
 email:
   sendgrid-base-url: https://api.sendgrid.com/v3
   secret-key: ${EMAIL_SECRET_KEY}
-  sender-address: geoloc.tesis@gmail.com
+  sender-address: geoloc.iua@gmail.com
   recovery:
     url: https://gps-auth.herokuapp.com/recovery/validate/

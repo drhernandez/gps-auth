@@ -89,4 +89,9 @@ public class User implements Serializable {
             this.setDeletedAt(LocalDateTime.now(ZoneId.systemDefault()));
         }
     }
+
+    public String getName() {
+        return name;
+    }
+
 }

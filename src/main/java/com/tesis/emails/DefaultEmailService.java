@@ -2,6 +2,8 @@ package com.tesis.emails;
 
 import com.tesis.emails.templates.EmailTemplate;
 import com.tesis.emails.templates.RecoveryEmailTemplate;
+import com.tesis.emails.templates.WelcomeEmailTemplate;
+import com.tesis.users.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,4 +35,16 @@ public class DefaultEmailService implements EmailService {
 
         mailClient.sendMail(recoveryTemplate.get());
     }
+
+    @Override
+    public void sendWelcomePasswordEmail(List<String> receivers, String userName) {
+        EmailTemplate welcomeTemplate = WelcomeEmailTemplate.builder()
+                .senderMail(senderMail)
+                .receivers(receivers)
+                .userName(userName)
+                .build();
+
+        mailClient.sendMail(welcomeTemplate.get());
+    }
+
 }
