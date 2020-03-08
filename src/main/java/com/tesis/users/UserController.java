@@ -18,6 +18,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping()
+    public ResponseEntity<User> getUser(@Valid @RequestParam(value="email")  String email) {
+        return ResponseEntity.ok(userService.getUser(email).orElseThrow(() -> new NotFoundException(String.format("User with email %s not found", email))));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@Valid @PathVariable Long id) {
         return ResponseEntity.ok(userService.getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id))));
