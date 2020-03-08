@@ -28,11 +28,6 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id))));
     }
 
-    @GetMapping("/{email}")
-    public ResponseEntity<User> getUser(@Valid @PathVariable String email) {
-        return ResponseEntity.ok(userService.getUser(email).orElseThrow(() -> new NotFoundException(String.format("User with email %s not found", email))));
-    }
-
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody UserRequestBody userRequestBody) {
         return ResponseEntity.ok(userService.createUser(userRequestBody));
