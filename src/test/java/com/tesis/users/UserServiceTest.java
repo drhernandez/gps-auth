@@ -1,5 +1,6 @@
 package com.tesis.users;
 
+import com.tesis.emails.EmailService;
 import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.roles.Role;
@@ -13,14 +14,14 @@ import org.mockito.Mock;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.SQLException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 public class UserServiceTest {
@@ -31,6 +32,8 @@ public class UserServiceTest {
     private RoleService roleService;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private EmailService emailService;
     @InjectMocks
     private DefaultUserService userService;
 
@@ -155,11 +158,40 @@ public class UserServiceTest {
         when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
         when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
         when(passwordEncoder.encode(anyString())).thenReturn("hashed password");
+        doNothing().when(emailService).sendWelcomePasswordEmail(anyList(), anyString());
 
         User user = userService.createUser(requestBody);
         assertNotNull(user);
         assertEquals("test", user.getName());
         assertEquals("hashed password", user.getPassword());
+    }
+
+    @DisplayName("User service - createUser() emailService error")
+    @Test
+    public void createUser5() {
+
+        UserRequestBody requestBody = UserRequestBody.builder()
+                .name("test")
+                .lastName("test")
+                .email("test@test.com")
+                .password("test")
+                .role("TEST")
+                .build();
+
+        Role role = Role.builder().name("TEST").build();
+
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed password");
+        doThrow(ResponseStatusException.class).when(emailService).sendWelcomePasswordEmail(anyList(), anyString());
+
+        assertThrows(ResponseStatusException.class, () -> userService.createUser(requestBody));
+
+
+//        User user = userService.createUser(requestBody);
+//        assertNotNull(user);
+//        assertEquals("test", user.getName());
+//        assertEquals("hashed password", user.getPassword());
     }
 
     @DisplayName("User service - updateUser() user not found")
