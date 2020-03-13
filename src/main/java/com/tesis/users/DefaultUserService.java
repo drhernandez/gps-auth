@@ -70,13 +70,12 @@ public class DefaultUserService implements UserService {
 
         try {
             userRepository.save(user);
-            emailService.sendWelcomePasswordEmail(Lists.newArrayList(userRequestBody.getEmail()), userRequestBody.getName());
         } catch (DataIntegrityViolationException e) {
             ConstraintViolationException error = (ConstraintViolationException) e.getCause();
             throw new BadRequestException(String.format("Invalid body, missing field [%s]", error.getConstraintName()));
-        } catch (Exception e) {
-            throw new InternalServerErrorException(String.format("Internal server error. Cause: [%s]", e.getCause()));
         }
+
+        emailService.sendWelcomePasswordEmail(Lists.newArrayList(userRequestBody.getEmail()), userRequestBody.getName());
 
         return user;
     }
