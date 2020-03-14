@@ -187,11 +187,6 @@ public class UserServiceTest {
 
         assertThrows(ResponseStatusException.class, () -> userService.createUser(requestBody));
 
-
-//        User user = userService.createUser(requestBody);
-//        assertNotNull(user);
-//        assertEquals("test", user.getName());
-//        assertEquals("hashed password", user.getPassword());
     }
 
     @DisplayName("User service - updateUser() user not found")
