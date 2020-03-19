@@ -10,6 +10,13 @@ public interface RecoveryService {
     RecoveryToken createToken(String email);
 
     /**
+     * Generate a welcome token base on user email and send and welcome email with the token
+     * @param email
+     * @return
+     */
+    RecoveryToken createWelcomeToken(String email);
+
+    /**
      * Validate is token is not expired
      * @param token
      * @return

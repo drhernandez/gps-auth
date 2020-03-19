@@ -18,7 +18,7 @@ spring:
       ddl-auto: update
 
 server:
-  port: 8080
+  port: 8081
 
 jwt:
   secret-key: ccXO1GSYaGNUaQthSgEWqym6BVdLzKITPmxeYff/KbAUXc0k8y6yirNbBBiYT7IS32r567Pzg0rcmjniF5zd6w==
@@ -28,4 +28,7 @@ email:
   secret-key: ${EMAIL_SECRET_KEY}
   sender-address: geoloc.iua@gmail.com
   recovery:
+    url: http://localhost:3000/recovery/validate/
+  welcome:
+    #TODO Cambiar por url del front de bienvenida
     url: http://localhost:3000/recovery/validate/

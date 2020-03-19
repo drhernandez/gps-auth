@@ -12,5 +12,5 @@ public interface EmailService {
      * @param recoveryToken
      */
     void sendRecoveryPasswordEmail(List<String> receivers, String recoveryToken);
-    void sendWelcomePasswordEmail(List<String> receivers, String userName);
+    void sendWelcomePasswordEmail(List<String> receivers, String userName, String welcomeToken);
 }

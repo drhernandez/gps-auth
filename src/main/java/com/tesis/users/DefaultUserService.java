@@ -1,10 +1,7 @@
 package com.tesis.users;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.tesis.emails.EmailService;
 import com.tesis.exceptions.BadRequestException;
-import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.roles.Role;
 import com.tesis.roles.RoleService;
@@ -22,15 +19,13 @@ public class DefaultUserService implements UserService {
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
 
 
     @Autowired
-    public DefaultUserService(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder, EmailService emailService) {
+    public DefaultUserService(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
     }
 
     @Override
@@ -74,8 +69,6 @@ public class DefaultUserService implements UserService {
             ConstraintViolationException error = (ConstraintViolationException) e.getCause();
             throw new BadRequestException(String.format("Invalid body, missing field [%s]", error.getConstraintName()));
         }
-
-        emailService.sendWelcomePasswordEmail(Lists.newArrayList(userRequestBody.getEmail()), userRequestBody.getName());
 
         return user;
     }

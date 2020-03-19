@@ -18,6 +18,7 @@ public class WelcomeEmailTemplate implements EmailTemplate {
 
     private String senderMail;
     private String userName;
+    private String welcomeToken;
     private List<String> receivers;
 
     @Override
@@ -33,6 +34,7 @@ public class WelcomeEmailTemplate implements EmailTemplate {
 
         Map<String, Object> dynamicTemplateData = new HashMap<>();
         dynamicTemplateData.put("user_name", userName);
+        dynamicTemplateData.put("welcome_link", welcomeToken);
 
         return EmailModel.builder()
                 .personalizations(

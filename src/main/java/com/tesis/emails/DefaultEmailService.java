@@ -18,12 +18,14 @@ public class DefaultEmailService implements EmailService {
     private final SendGridClient mailClient;
     private final String senderMail;
     private final String recoveryUrl;
+    private final String welcomeUrl;
 
     @Autowired
-    public DefaultEmailService(SendGridClient mailClient, @Value("${email.sender-address}") String senderMail, @Value("${email.recovery.url}") String recoveryUrl) {
+    public DefaultEmailService(SendGridClient mailClient, @Value("${email.sender-address}") String senderMail, @Value("${email.recovery.url}") String recoveryUrl, @Value("${email.welcome.url}") String welcomeUrl) {
         this.mailClient = mailClient;
         this.senderMail = senderMail;
         this.recoveryUrl = recoveryUrl;
+        this.welcomeUrl = welcomeUrl;
     }
 
     @Override
@@ -39,12 +41,13 @@ public class DefaultEmailService implements EmailService {
     }
 
     @Override
-    public void sendWelcomePasswordEmail(List<String> receivers, String userName) {
+    public void sendWelcomePasswordEmail(List<String> receivers, String userName, String welcomeToken) {
         try {
             EmailTemplate welcomeTemplate = WelcomeEmailTemplate.builder()
                     .senderMail(senderMail)
                     .receivers(receivers)
                     .userName(userName)
+                    .welcomeToken(welcomeUrl + welcomeToken)
                     .build();
 
             mailClient.sendMail(welcomeTemplate.get());

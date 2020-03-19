@@ -58,6 +58,26 @@ public class DefaultRecoveryService implements RecoveryService {
     }
 
     @Override
+    public RecoveryToken createWelcomeToken(String email) {
+
+        Optional<User> user = userService.getUser(email);
+        Long userId = user
+                .orElseThrow(() -> new BadRequestException(String.format("Email %s is not registered", email)))
+                .getId();
+
+        RecoveryToken recoveryToken = recoveryRepository.findById(userId)
+                .filter(token -> validateToken(token.getToken()))
+                .orElseGet(() -> generateRandomToken(userId));
+
+        emailService.sendWelcomePasswordEmail(
+                Lists.newArrayList(user.get().getEmail()),
+                user.get().getName(),
+                recoveryToken.getToken());
+
+        return recoveryToken;
+    }
+
+    @Override
     public boolean validateToken(String tokenString) {
         return JwtUtils.validateToken(tokenString, secretKey);
     }
