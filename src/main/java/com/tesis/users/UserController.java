@@ -41,7 +41,6 @@ public class UserController {
                     e.getCause(),
                     e.getStackTrace());
             userService.physicallyDeleteUser(userRequestBody.getEmail());
-
             throw e;
         }
     }

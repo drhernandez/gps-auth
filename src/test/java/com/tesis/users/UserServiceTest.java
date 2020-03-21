@@ -310,4 +310,45 @@ public class UserServiceTest {
             fail("should not fail here");
         }
     }
+
+    @DisplayName("User service - physicallyDeleteUser() user not found")
+    @Test
+    public void physicallyDeleteUser1() {
+
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+
+        try {
+            userService.physicallyDeleteUser("test@test.com");
+        } catch (Exception e) {
+            fail("Should not throw any exception");
+        }
+    }
+
+
+    @DisplayName("User service - physicallyDeleteUser() ok")
+    @Test
+    public void physicallyDeleteUser2() {
+
+        User mock = User.builder()
+                .id(1L)
+                .name("test")
+                .lastName("test")
+                .email("test@test.com")
+                .password("test")
+                .role(
+                        Role.builder()
+                                .id(1L)
+                                .name("TEST")
+                                .build()
+                )
+                .build();
+
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(mock);
+
+        try {
+            userService.physicallyDeleteUser("test@test.com");
+        } catch (Exception e) {
+            fail("should not fail here");
+        }
+    }
 }

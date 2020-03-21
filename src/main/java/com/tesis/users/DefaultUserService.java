@@ -114,10 +114,10 @@ public class DefaultUserService implements UserService {
     @Override
     public void physicallyDeleteUser(String email) {
         try {
-            User user = getUser(email).get();
+            User user = getUser(email).orElseThrow(() -> new NotFoundException(String.format("User %s not found", email)));
             userRepository.delete(user);
         } catch (Exception e) {
-            logger.info("No user to delete");
+            logger.info(e.getMessage());
         }
     }
 }
