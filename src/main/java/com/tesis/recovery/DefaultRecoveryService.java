@@ -58,7 +58,7 @@ public class DefaultRecoveryService implements RecoveryService {
     }
 
     @Override
-    public RecoveryToken createWelcomeToken(String email) {
+    public RecoveryToken createWelcomeToken(String email) throws InternalServerErrorException {
 
         Optional<User> user = userService.getUser(email);
         Long userId = user

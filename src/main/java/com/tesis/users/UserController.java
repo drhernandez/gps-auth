@@ -2,12 +2,14 @@ package com.tesis.users;
 
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.recovery.RecoveryService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -28,9 +30,20 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody UserRequestBody userRequestBody) {
-        User user = userService.createUser(userRequestBody);
-        recoveryService.createWelcomeToken(user.getEmail());
-        return ResponseEntity.ok(user);
+        try {
+            User user = userService.createUser(userRequestBody);
+            recoveryService.createWelcomeToken(user.getEmail());
+            return ResponseEntity.ok(user);
+        }
+        catch (Exception e){
+            logger.error("Error al crear usuario. [message: {}] [cause: {}] [stackTrace: {}]",
+                    e.getMessage(),
+                    e.getCause(),
+                    e.getStackTrace());
+            userService.physicallyDeleteUser(userRequestBody.getEmail());
+
+            throw e;
+        }
     }
 
     @PutMapping("/{id}")

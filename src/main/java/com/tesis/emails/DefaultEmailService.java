@@ -56,6 +56,7 @@ public class DefaultEmailService implements EmailService {
                     e.getMessage(),
                     e.getCause(),
                     e.getStackTrace());
+            throw e;
         }
     }
 

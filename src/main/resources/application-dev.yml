@@ -1,6 +1,7 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/gps_auth_db
+#    url: jdbc:postgresql://ec2-54-83-55-122.compute-1.amazonaws.com:5432/d7o8hr3trkk3v6?user=czhipeaasfbluf&password=859441ceeb962718644b93e1ef99aebfed2ecf610f5608b042318f24a13b9d99
     username: postgres
     password: postgres
     hikari:

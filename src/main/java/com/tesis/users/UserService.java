@@ -38,4 +38,10 @@ public interface UserService {
      * @param id
      */
     void deleteUser(Long id);
+
+    /**
+     * Delete physically existing user
+     * @param email
+     */
+    void physicallyDeleteUser(String email);
 }

@@ -5,6 +5,7 @@ import com.tesis.exceptions.BadRequestException;
 import com.tesis.exceptions.NotFoundException;
 import com.tesis.roles.Role;
 import com.tesis.roles.RoleService;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class DefaultUserService implements UserService {
 
@@ -107,5 +109,15 @@ public class DefaultUserService implements UserService {
         User user = getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id)));
         user.setStatus(UserStatus.DELETED);
         userRepository.save(user);
+    }
+
+    @Override
+    public void physicallyDeleteUser(String email) {
+        try {
+            User user = getUser(email).get();
+            userRepository.delete(user);
+        } catch (Exception e) {
+            logger.info("No user to delete");
+        }
     }
 }
