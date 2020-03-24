@@ -18,7 +18,7 @@ spring:
       ddl-auto: update
 
 server:
-  port: 8081
+  port: 8080
 
 jwt:
   secret-key: ccXO1GSYaGNUaQthSgEWqym6BVdLzKITPmxeYff/KbAUXc0k8y6yirNbBBiYT7IS32r567Pzg0rcmjniF5zd6w==

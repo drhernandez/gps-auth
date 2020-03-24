@@ -162,14 +162,6 @@ public class RecoveryServiceTest {
         assertEquals(1L, token.getUserId());
     }
 
-    @DisplayName("Recovery service - createWelcomeToken() invalid user email")
-    @Test
-    public void createWelcomeToken1() {
-
-        when(userService.getUser("test@test.com")).thenReturn(Optional.empty());
-        assertThrows(BadRequestException.class, () -> recoveryService.createWelcomeToken("test@test.com"));
-    }
-
     @DisplayName("Recovery service - createWelcomeToken() error sending mail")
     @Test
     public void createWelcomeToken2() {
@@ -193,11 +185,10 @@ public class RecoveryServiceTest {
                 .token("token")
                 .build();
 
-        when(userService.getUser("test@test.com")).thenReturn(Optional.of(mockedUser));
         when(recoveryRepository.findById(1L)).thenReturn(Optional.of(mockedToken));
         doThrow(ResponseStatusException.class).when(emailService).sendWelcomePasswordEmail(anyList(), anyString(), anyString());
 
-        assertThrows(ResponseStatusException.class, () -> recoveryService.createWelcomeToken("test@test.com"));
+        assertThrows(ResponseStatusException.class, () -> recoveryService.createWelcomeToken(mockedUser));
     }
 
     @DisplayName("Recovery service - createWelcomeToken() existing token but expired, should create a new one")
@@ -223,10 +214,9 @@ public class RecoveryServiceTest {
                 .token("token")
                 .build();
 
-        when(userService.getUser("test@test.com")).thenReturn(Optional.of(mockedUser));
         when(recoveryRepository.findById(1L)).thenReturn(Optional.of(mockedToken));
 
-        RecoveryToken token = recoveryService.createWelcomeToken("test@test.com");
+        RecoveryToken token = recoveryService.createWelcomeToken(mockedUser);
         assertNotNull(token);
         assertEquals(1L, token.getUserId());
     }
@@ -254,10 +244,9 @@ public class RecoveryServiceTest {
                 .token("token")
                 .build();
 
-        when(userService.getUser("test@test.com")).thenReturn(Optional.of(mockedUser));
         when(recoveryRepository.findById(1L)).thenReturn(Optional.of(mockedToken));
 
-        RecoveryToken token = recoveryService.createWelcomeToken("test@test.com");
+        RecoveryToken token = recoveryService.createWelcomeToken(mockedUser);
         assertNotNull(token);
         assertEquals(1L, token.getUserId());
     }
@@ -273,11 +262,10 @@ public class RecoveryServiceTest {
                 .password("test")
                 .build();
 
-        when(userService.getUser("test@test.com")).thenReturn(Optional.of(mockedUser));
         when(recoveryRepository.findById(1L)).thenReturn(Optional.empty());
         doNothing().when(emailService).sendWelcomePasswordEmail(anyList(), anyString(), anyString());
 
-        RecoveryToken token = recoveryService.createWelcomeToken("test@test.com");
+        RecoveryToken token = recoveryService.createWelcomeToken(mockedUser);
         assertNotNull(token);
         assertEquals(1L, token.getUserId());
     }

@@ -13,6 +13,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -33,7 +34,7 @@ public class DefaultRecoveryService implements RecoveryService {
     private Key secretKey;
 
     @Autowired
-    public DefaultRecoveryService(RecoveryRepository recoveryRepository, UserService userService, EmailService emailService, Key secretKey) {
+    public DefaultRecoveryService(RecoveryRepository recoveryRepository, @Lazy UserService userService, EmailService emailService, Key secretKey) {
         this.recoveryRepository = recoveryRepository;
         this.userService = userService;
         this.emailService = emailService;
@@ -58,20 +59,15 @@ public class DefaultRecoveryService implements RecoveryService {
     }
 
     @Override
-    public RecoveryToken createWelcomeToken(String email) throws InternalServerErrorException {
+    public RecoveryToken createWelcomeToken(User user) {
 
-        Optional<User> user = userService.getUser(email);
-        Long userId = user
-                .orElseThrow(() -> new BadRequestException(String.format("Email %s is not registered", email)))
-                .getId();
-
-        RecoveryToken recoveryToken = recoveryRepository.findById(userId)
+        RecoveryToken recoveryToken = recoveryRepository.findById(user.getId())
                 .filter(token -> validateToken(token.getToken()))
-                .orElseGet(() -> generateRandomToken(userId));
+                .orElseGet(() -> generateRandomToken(user.getId()));
 
         emailService.sendWelcomePasswordEmail(
-                Lists.newArrayList(user.get().getEmail()),
-                user.get().getName(),
+                Lists.newArrayList(user.getEmail()),
+                user.getName(),
                 recoveryToken.getToken());
 
         return recoveryToken;

@@ -1,8 +1,9 @@
 package com.tesis.users;
 
-import com.tesis.emails.EmailService;
 import com.tesis.exceptions.BadRequestException;
+import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.NotFoundException;
+import com.tesis.recovery.RecoveryService;
 import com.tesis.roles.Role;
 import com.tesis.roles.RoleService;
 import org.hibernate.exception.ConstraintViolationException;
@@ -14,14 +15,15 @@ import org.mockito.Mock;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.SQLException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 public class UserServiceTest {
@@ -30,6 +32,8 @@ public class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private RoleService roleService;
+    @Mock
+    private RecoveryService recoveryService;
     @Mock
     private PasswordEncoder passwordEncoder;
     @InjectMocks
@@ -139,9 +143,31 @@ public class UserServiceTest {
         assertEquals("Invalid body, missing field [name]", e.getReason());
     }
 
-    @DisplayName("User service - createUser() ok")
+    @DisplayName("User service - createUser() error sending mail")
     @Test
     public void createUser4() {
+
+        UserRequestBody requestBody = UserRequestBody.builder()
+                .name("test")
+                .lastName("test")
+                .email("test@test.com")
+                .password("test")
+                .role("TEST")
+                .build();
+
+        Role role = Role.builder().name("TEST").build();
+
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed password");
+        when(recoveryService.createWelcomeToken(any())).thenThrow(BadRequestException.class);
+
+        assertThrows(InternalServerErrorException.class, () -> userService.createUser(requestBody));
+    }
+
+    @DisplayName("User service - createUser() ok")
+    @Test
+    public void createUser5() {
 
         UserRequestBody requestBody = UserRequestBody.builder()
                 .name("test")
@@ -311,42 +337,12 @@ public class UserServiceTest {
         }
     }
 
-    @DisplayName("User service - physicallyDeleteUser() user not found")
+    @DisplayName("User service - physicallyDeleteUser() ok")
     @Test
     public void physicallyDeleteUser1() {
 
-        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
-
         try {
-            userService.physicallyDeleteUser("test@test.com");
-        } catch (Exception e) {
-            fail("Should not throw any exception");
-        }
-    }
-
-
-    @DisplayName("User service - physicallyDeleteUser() ok")
-    @Test
-    public void physicallyDeleteUser2() {
-
-        User mock = User.builder()
-                .id(1L)
-                .name("test")
-                .lastName("test")
-                .email("test@test.com")
-                .password("test")
-                .role(
-                        Role.builder()
-                                .id(1L)
-                                .name("TEST")
-                                .build()
-                )
-                .build();
-
-        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(mock);
-
-        try {
-            userService.physicallyDeleteUser("test@test.com");
+            userService.physicallyDeleteUser(1L);
         } catch (Exception e) {
             fail("should not fail here");
         }
