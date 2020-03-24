@@ -34,8 +34,14 @@ public interface UserService {
     User updateUser(Long userId, UserRequestBody userRequestBody);
 
     /**
-     * Delete existing user
+     * Delete existing user (only set status on deleted)
      * @param id
      */
     void deleteUser(Long id);
+
+    /**
+     * Delete physically existing user
+     * @param id
+     */
+    void physicallyDeleteUser(Long id);
 }

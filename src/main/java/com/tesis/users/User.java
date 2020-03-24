@@ -89,4 +89,5 @@ public class User implements Serializable {
             this.setDeletedAt(LocalDateTime.now(ZoneId.systemDefault()));
         }
     }
+
 }

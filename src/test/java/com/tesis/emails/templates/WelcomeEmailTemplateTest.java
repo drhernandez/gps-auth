@@ -6,23 +6,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
-public class RecoveryEmailTemplateTest {
+public class WelcomeEmailTemplateTest {
 
     @Test
     public void generateEmailModel() {
 
-        EmailTemplate template = RecoveryEmailTemplate.builder()
+        EmailTemplate template = WelcomeEmailTemplate.builder()
                 .receivers(
                         Lists.newArrayList(
                                 "receiver@test.com"
                         )
                 )
                 .senderMail("sender@test.com")
-                .recoveryLink("este es un recovery link")
+                .userName("un user name")
                 .build();
 
         EmailModel model = template.get();
@@ -30,7 +30,7 @@ public class RecoveryEmailTemplateTest {
         assertNotNull(model);
         assertEquals("receiver@test.com", model.getPersonalizations().get(0).getTo().get(0).getEmail());
         assertEquals("sender@test.com", model.getFrom().getEmail());
-        assertEquals("d-05a101c8a8364128af84e8acc0e51e61", model.getTemplateId());
-        assertEquals("este es un recovery link", model.getPersonalizations().get(0).getDynamicTemplateData().get("recovery_link"));
+        assertEquals("d-5bba1686a1d54b58b15a00888dc18362", model.getTemplateId());
+        assertEquals("un user name", model.getPersonalizations().get(0).getDynamicTemplateData().get("user_name"));
     }
 }

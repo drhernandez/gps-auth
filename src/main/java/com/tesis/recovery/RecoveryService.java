@@ -1,5 +1,7 @@
 package com.tesis.recovery;
 
+import com.tesis.users.User;
+
 public interface RecoveryService {
 
     /**
@@ -8,6 +10,13 @@ public interface RecoveryService {
      * @return
      */
     RecoveryToken createToken(String email);
+
+    /**
+     * Send and welcome email with the token
+     * @param user
+     * @return
+     */
+    RecoveryToken createWelcomeToken(User user);
 
     /**
      * Validate is token is not expired
