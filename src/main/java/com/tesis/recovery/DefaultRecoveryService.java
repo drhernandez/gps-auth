@@ -13,6 +13,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -33,7 +34,7 @@ public class DefaultRecoveryService implements RecoveryService {
     private Key secretKey;
 
     @Autowired
-    public DefaultRecoveryService(RecoveryRepository recoveryRepository, UserService userService, EmailService emailService, Key secretKey) {
+    public DefaultRecoveryService(RecoveryRepository recoveryRepository, @Lazy UserService userService, EmailService emailService, Key secretKey) {
         this.recoveryRepository = recoveryRepository;
         this.userService = userService;
         this.emailService = emailService;
@@ -53,6 +54,21 @@ public class DefaultRecoveryService implements RecoveryService {
                 .orElseGet(() -> generateRandomToken(userId));
 
         emailService.sendRecoveryPasswordEmail(Lists.newArrayList(user.get().getEmail()), recoveryToken.getToken());
+
+        return recoveryToken;
+    }
+
+    @Override
+    public RecoveryToken createWelcomeToken(User user) {
+
+        RecoveryToken recoveryToken = recoveryRepository.findById(user.getId())
+                .filter(token -> validateToken(token.getToken()))
+                .orElseGet(() -> generateRandomToken(user.getId()));
+
+        emailService.sendWelcomePasswordEmail(
+                Lists.newArrayList(user.getEmail()),
+                user.getName(),
+                recoveryToken.getToken());
 
         return recoveryToken;
     }

@@ -12,12 +12,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Builder
-public class RecoveryEmailTemplate implements EmailTemplate {
+public class WelcomeEmailTemplate implements EmailTemplate {
 
-    private final String TEMPLATE_ID = "d-05a101c8a8364128af84e8acc0e51e61";
+    private final String TEMPLATE_ID = "d-5bba1686a1d54b58b15a00888dc18362";
 
     private String senderMail;
-    private String recoveryLink;
+    private String userName;
+    private String welcomeToken;
     private List<String> receivers;
 
     @Override
@@ -32,7 +33,8 @@ public class RecoveryEmailTemplate implements EmailTemplate {
                 .build();
 
         Map<String, Object> dynamicTemplateData = new HashMap<>();
-        dynamicTemplateData.put("recovery_link", recoveryLink);
+        dynamicTemplateData.put("user_name", userName);
+        dynamicTemplateData.put("welcome_link", welcomeToken);
 
         return EmailModel.builder()
                 .personalizations(

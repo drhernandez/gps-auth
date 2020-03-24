@@ -26,8 +26,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith({SpringExtension.class, JMockitExtension.class})
 public class RecoveryServiceTest {
@@ -159,6 +158,114 @@ public class RecoveryServiceTest {
         when(recoveryRepository.findById(1L)).thenReturn(Optional.empty());
 
         RecoveryToken token = recoveryService.createToken("test@test.com");
+        assertNotNull(token);
+        assertEquals(1L, token.getUserId());
+    }
+
+    @DisplayName("Recovery service - createWelcomeToken() error sending mail")
+    @Test
+    public void createWelcomeToken2() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return false;
+            }
+        };
+
+        User mockedUser = User.builder()
+                .id(1L)
+                .name("test")
+                .email("test@test.com")
+                .password("test")
+                .build();
+
+        RecoveryToken mockedToken = RecoveryToken.builder()
+                .userId(1L)
+                .token("token")
+                .build();
+
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.of(mockedToken));
+        doThrow(ResponseStatusException.class).when(emailService).sendWelcomePasswordEmail(anyList(), anyString(), anyString());
+
+        assertThrows(ResponseStatusException.class, () -> recoveryService.createWelcomeToken(mockedUser));
+    }
+
+    @DisplayName("Recovery service - createWelcomeToken() existing token but expired, should create a new one")
+    @Test
+    public void createWelcomeToken3() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return false;
+            }
+        };
+
+        User mockedUser = User.builder()
+                .id(1L)
+                .name("test")
+                .email("test@test.com")
+                .password("test")
+                .build();
+
+        RecoveryToken mockedToken = RecoveryToken.builder()
+                .userId(1L)
+                .token("token")
+                .build();
+
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.of(mockedToken));
+
+        RecoveryToken token = recoveryService.createWelcomeToken(mockedUser);
+        assertNotNull(token);
+        assertEquals(1L, token.getUserId());
+    }
+
+    @DisplayName("Recovery service - createWelcomeToken() existing token, should not create a new one")
+    @Test
+    public void createWelcomeToken4() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return true;
+            }
+        };
+
+        User mockedUser = User.builder()
+                .id(1L)
+                .name("test")
+                .email("test@test.com")
+                .password("test")
+                .build();
+
+        RecoveryToken mockedToken = RecoveryToken.builder()
+                .userId(1L)
+                .token("token")
+                .build();
+
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.of(mockedToken));
+
+        RecoveryToken token = recoveryService.createWelcomeToken(mockedUser);
+        assertNotNull(token);
+        assertEquals(1L, token.getUserId());
+    }
+
+    @DisplayName("Recovery service - createWelcomeToken() ok")
+    @Test
+    public void createWelcomeToken5() {
+
+        User mockedUser = User.builder()
+                .id(1L)
+                .name("test")
+                .email("test@test.com")
+                .password("test")
+                .build();
+
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.empty());
+        doNothing().when(emailService).sendWelcomePasswordEmail(anyList(), anyString(), anyString());
+
+        RecoveryToken token = recoveryService.createWelcomeToken(mockedUser);
         assertNotNull(token);
         assertEquals(1L, token.getUserId());
     }

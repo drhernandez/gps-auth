@@ -28,4 +28,13 @@ public class EmailServiceTest {
         doThrow(InternalServerErrorException.class).when(mailClient).sendMail(any());
         assertThrows(InternalServerErrorException.class, () -> emailService.sendRecoveryPasswordEmail(Lists.newArrayList(), "token"));
     }
+
+    @DisplayName("Email service - sendWelcomePasswordEmail() client error")
+    @Test
+    public void sendWelcomePasswordEmail1() {
+
+        doThrow(InternalServerErrorException.class).when(mailClient).sendMail(any());
+        assertThrows(InternalServerErrorException.class, () -> emailService.sendWelcomePasswordEmail(Lists.newArrayList(), "Pedro", "token"));
+    }
+
 }

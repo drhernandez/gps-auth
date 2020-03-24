@@ -26,6 +26,9 @@ jwt:
 email:
   sendgrid-base-url: https://api.sendgrid.com/v3
   secret-key: ${EMAIL_SECRET_KEY}
-  sender-address: geoloc.tesis@gmail.com
+  sender-address: geoloc.iua@gmail.com
   recovery:
+    url: http://localhost:3000/recovery/validate/
+  welcome:
+    #TODO Cambiar por url del front de bienvenida
     url: http://localhost:3000/recovery/validate/

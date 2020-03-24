@@ -2,9 +2,12 @@ package com.tesis.users;
 
 import com.google.common.base.Strings;
 import com.tesis.exceptions.BadRequestException;
+import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.NotFoundException;
+import com.tesis.recovery.RecoveryService;
 import com.tesis.roles.Role;
 import com.tesis.roles.RoleService;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,17 +16,21 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class DefaultUserService implements UserService {
 
     private final UserRepository userRepository;
     private final RoleService roleService;
+    private final RecoveryService recoveryService;
     private final PasswordEncoder passwordEncoder;
 
+
     @Autowired
-    public DefaultUserService(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public DefaultUserService(UserRepository userRepository, RoleService roleService, RecoveryService recoveryService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
+        this.recoveryService = recoveryService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -69,6 +76,14 @@ public class DefaultUserService implements UserService {
             throw new BadRequestException(String.format("Invalid body, missing field [%s]", error.getConstraintName()));
         }
 
+        try {
+            recoveryService.createWelcomeToken(user);
+        } catch (Exception e) {
+            logger.error("[message: Error sending welcome mail to user {}. Deleting user] [error: {}]", user.getEmail(), e.getMessage());
+            physicallyDeleteUser(user.getId());
+            throw new InternalServerErrorException("Could not create user", e);
+        }
+
         return user;
     }
 
@@ -106,5 +121,10 @@ public class DefaultUserService implements UserService {
         User user = getUser(id).orElseThrow(() -> new NotFoundException(String.format("User %s not found", id)));
         user.setStatus(UserStatus.DELETED);
         userRepository.save(user);
+    }
+
+    @Override
+    public void physicallyDeleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 }

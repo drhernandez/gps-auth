@@ -1,7 +1,9 @@
 package com.tesis.users;
 
 import com.tesis.exceptions.BadRequestException;
+import com.tesis.exceptions.InternalServerErrorException;
 import com.tesis.exceptions.NotFoundException;
+import com.tesis.recovery.RecoveryService;
 import com.tesis.roles.Role;
 import com.tesis.roles.RoleService;
 import org.hibernate.exception.ConstraintViolationException;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -29,6 +32,8 @@ public class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private RoleService roleService;
+    @Mock
+    private RecoveryService recoveryService;
     @Mock
     private PasswordEncoder passwordEncoder;
     @InjectMocks
@@ -138,9 +143,31 @@ public class UserServiceTest {
         assertEquals("Invalid body, missing field [name]", e.getReason());
     }
 
-    @DisplayName("User service - createUser() ok")
+    @DisplayName("User service - createUser() error sending mail")
     @Test
     public void createUser4() {
+
+        UserRequestBody requestBody = UserRequestBody.builder()
+                .name("test")
+                .lastName("test")
+                .email("test@test.com")
+                .password("test")
+                .role("TEST")
+                .build();
+
+        Role role = Role.builder().name("TEST").build();
+
+        when(userRepository.findByEmailAndStatusIsNot("test@test.com", UserStatus.DELETED)).thenReturn(null);
+        when(roleService.getByName("TEST")).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed password");
+        when(recoveryService.createWelcomeToken(any())).thenThrow(BadRequestException.class);
+
+        assertThrows(InternalServerErrorException.class, () -> userService.createUser(requestBody));
+    }
+
+    @DisplayName("User service - createUser() ok")
+    @Test
+    public void createUser5() {
 
         UserRequestBody requestBody = UserRequestBody.builder()
                 .name("test")
@@ -305,6 +332,17 @@ public class UserServiceTest {
 
         try {
             userService.deleteUser(1L);
+        } catch (Exception e) {
+            fail("should not fail here");
+        }
+    }
+
+    @DisplayName("User service - physicallyDeleteUser() ok")
+    @Test
+    public void physicallyDeleteUser1() {
+
+        try {
+            userService.physicallyDeleteUser(1L);
         } catch (Exception e) {
             fail("should not fail here");
         }
