@@ -31,6 +31,6 @@ email:
   secret-key: ${EMAIL_SECRET_KEY}
   sender-address: geoloc.iua@gmail.com
   recovery:
-    url: https://gps-front.herokuapp.com/recovery/validate/
+    url: https://gps-front.herokuapp.com/reset-password/
   welcome:
-    url: https://gps-front.herokuapp.com/recovery/validate/
+    url: https://gps-front.herokuapp.com/reset-password/
