@@ -23,6 +23,7 @@ public class JwtUtils {
             return true;
 
         } catch (JwtException ex) {
+            logger.warn("[message: Invalid token] [error: {}] [stacktrace: {}]", ex.getMessage(), ex.getStackTrace());
             return false;
         }
     }
