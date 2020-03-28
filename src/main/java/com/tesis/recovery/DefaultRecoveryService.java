@@ -26,8 +26,6 @@ import java.util.Optional;
 @Service
 public class DefaultRecoveryService implements RecoveryService {
 
-    private final int SECONDS_TO_EXPIRATION = 60 * 30;
-
     private final RecoveryRepository recoveryRepository;
     private final UserService userService;
     private final EmailService emailService;
@@ -51,7 +49,7 @@ public class DefaultRecoveryService implements RecoveryService {
 
         RecoveryToken recoveryToken = recoveryRepository.findById(userId)
                 .filter(token -> validateToken(token.getToken()))
-                .orElseGet(() -> generateRandomToken(userId));
+                .orElseGet(() -> generateRandomToken(userId, Date.from(ZonedDateTime.now(ZoneId.systemDefault()).plusSeconds(60 * 30).toInstant())));
 
         emailService.sendRecoveryPasswordEmail(Lists.newArrayList(user.get().getEmail()), recoveryToken.getToken());
 
@@ -63,7 +61,7 @@ public class DefaultRecoveryService implements RecoveryService {
 
         RecoveryToken recoveryToken = recoveryRepository.findById(user.getId())
                 .filter(token -> validateToken(token.getToken()))
-                .orElseGet(() -> generateRandomToken(user.getId()));
+                .orElseGet(() -> generateRandomToken(user.getId(), Date.from(ZonedDateTime.now(ZoneId.systemDefault()).plusMonths(1).toInstant())));
 
         emailService.sendWelcomePasswordEmail(
                 Lists.newArrayList(user.getEmail()),
@@ -102,12 +100,12 @@ public class DefaultRecoveryService implements RecoveryService {
         }
     }
 
-    private RecoveryToken generateRandomToken(Long userId) {
+    private RecoveryToken generateRandomToken(Long userId, Date expirationDate) {
         String jws = Jwts.builder()
                 .setHeaderParam("type", "RECOVERY")
                 .setSubject(userId.toString())
                 .setIssuedAt(Date.from(ZonedDateTime.now(ZoneId.systemDefault()).toInstant()))
-                .setExpiration(Date.from(ZonedDateTime.now(ZoneId.systemDefault()).plusSeconds(SECONDS_TO_EXPIRATION).toInstant()))
+                .setExpiration(expirationDate)
                 .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
 
