@@ -27,7 +27,7 @@ public class RecoveryController {
         return recoveryService.validateToken(token) ? ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/change-password")
+    @PutMapping("/change-password")
     public ResponseEntity<RecoveryToken> changePassword(@RequestHeader("x-recovery-token") String token, @RequestBody ChangePasswordBody body) {
         recoveryService.changeUserPassword(token, body.getPassword());
         return ResponseEntity.ok().build();
