@@ -14,6 +14,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Slf4j
@@ -45,6 +46,7 @@ public class DefaultUserService implements UserService {
     }
 
     @Override
+    @Transactional
     public User createUser(UserRequestBody userRequestBody) {
 
         if (getUser(userRequestBody.getEmail()).isPresent()) {
@@ -80,7 +82,6 @@ public class DefaultUserService implements UserService {
             recoveryService.createWelcomeToken(user);
         } catch (Exception e) {
             logger.error("[message: Error sending welcome mail to user {}. Deleting user] [error: {}]", user.getEmail(), e.getMessage());
-            physicallyDeleteUser(user.getId());
             throw new InternalServerErrorException("Could not create user", e);
         }
 

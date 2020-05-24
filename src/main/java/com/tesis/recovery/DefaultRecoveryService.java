@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.security.Key;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -77,6 +78,7 @@ public class DefaultRecoveryService implements RecoveryService {
     }
 
     @Override
+    @Transactional
     public void changeUserPassword(String token, String rawPassword) {
 
         Long userId = JwtUtils.getUserIdFromToken(token, secretKey);
