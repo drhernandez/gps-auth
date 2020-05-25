@@ -74,7 +74,15 @@ public class DefaultRecoveryService implements RecoveryService {
 
     @Override
     public boolean validateToken(String tokenString) {
-        return JwtUtils.validateToken(tokenString, secretKey);
+        if (!JwtUtils.validateToken(tokenString, secretKey)) {
+            return false;
+        }
+
+        Long userId = JwtUtils.getUserIdFromToken(tokenString, secretKey);
+        Optional<RecoveryToken> token = recoveryRepository.findById(userId)
+            .filter(tokenFound -> tokenFound.getToken().equals(tokenString));
+
+        return token.isPresent();
     }
 
     @Override
