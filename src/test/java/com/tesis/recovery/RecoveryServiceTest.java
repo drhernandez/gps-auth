@@ -121,6 +121,11 @@ public class RecoveryServiceTest {
             public boolean validateToken(String token, Key key) {
                 return true;
             }
+
+            @mockit.Mock
+            public Long getUserIdFromToken(String accessToken, Key secretKey) {
+                return 1L;
+            }
         };
 
         User mockedUser = User.builder()
@@ -230,6 +235,11 @@ public class RecoveryServiceTest {
             public boolean validateToken(String token, Key key) {
                 return true;
             }
+
+            @mockit.Mock
+            public Long getUserIdFromToken(String accessToken, Key secretKey) {
+                return 1L;
+            }
         };
 
         User mockedUser = User.builder()
@@ -329,5 +339,79 @@ public class RecoveryServiceTest {
         when(recoveryRepository.findById(1L)).thenReturn(Optional.of(RecoveryToken.builder().token("token").build()));
 
         assertDoesNotThrow(() -> recoveryService.changeUserPassword("token", "pass"));
+    }
+
+    @DisplayName("Validate token - token expired")
+    @Test
+    public void validateToken1() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return false;
+            }
+        };
+
+        assertFalse(recoveryService.validateToken("token"));
+    }
+
+    @DisplayName("Validate token - token not found")
+    @Test
+    public void validateToken2() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return true;
+            }
+
+            @mockit.Mock
+            public Long getUserIdFromToken(String accessToken, Key secretKey) {
+                return 1L;
+            }
+        };
+
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.empty());
+        assertFalse(recoveryService.validateToken("token"));
+    }
+
+    @DisplayName("Validate token - token does not match")
+    @Test
+    public void validateToken3() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return true;
+            }
+
+            @mockit.Mock
+            public Long getUserIdFromToken(String accessToken, Key secretKey) {
+                return 1L;
+            }
+        };
+
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.of(RecoveryToken.builder().token("other token").build()));
+        assertFalse(recoveryService.validateToken("token"));
+    }
+
+    @DisplayName("Validate token - ok")
+    @Test
+    public void validateToken4() {
+
+        new MockUp<JwtUtils>() {
+            @mockit.Mock
+            public boolean validateToken(String token, Key key) {
+                return true;
+            }
+
+            @mockit.Mock
+            public Long getUserIdFromToken(String accessToken, Key secretKey) {
+                return 1L;
+            }
+        };
+
+        when(recoveryRepository.findById(1L)).thenReturn(Optional.of(RecoveryToken.builder().token("token").build()));
+        assertTrue(recoveryService.validateToken("token"));
     }
 }
