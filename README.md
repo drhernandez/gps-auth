@@ -1,2 +1,2 @@
 # gps-auth
-Microservicio de autenticación/autorización
+Authentication / Authorization microservice for GPS Tracker project
